@@ -9,16 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-public class DialogoLogin extends DialogFragment {
+public class DialogoPostre extends DialogFragment {
 
 
     ListenerdelDialogo miListener;
-    private String usuario;
-
-    //constructor con el usuario
-    public DialogoLogin(String user) {
-        usuario=user;
-    }
 
     public interface ListenerdelDialogo {
         void alpulsarSi();
@@ -31,34 +25,31 @@ public class DialogoLogin extends DialogFragment {
 
         miListener =(ListenerdelDialogo) getActivity();
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        //recogemos el usuario que nos viene de parametro desde el constructor
         //para establecer los strings segun el idioma seleccionado en preferencias se usa: getString(R.string.usudialogo);
-        String usudialogo = getString(R.string.usudialogo);
-        String noexiste = getString(R.string.noexiste);
-        String registro = getString(R.string.registrar);
-        String si = getString(R.string.si);
-        String no = getString(R.string.no);
-        builder.setTitle(usudialogo + usuario + noexiste);
-        builder.setMessage(registro);
-        builder.setPositiveButton(si, new DialogInterface.OnClickListener() {
+        String cp = getString(R.string.continuarPedido);
+        String poc = getString(R.string.postreOcarta);
+        String pos = getString(R.string.postres);
+        String vc = getString(R.string.volverCarta);
+        builder.setTitle(cp);
+        builder.setMessage(poc);
+        builder.setPositiveButton(pos, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //Lo gestiona la actividad ActivityLogin mediante miListener
+                //Lo gestiona la actividad MainActivity mediante miListener
                 miListener.alpulsarSi();
+
             }
         });
 
-        builder.setNegativeButton(no, new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(vc, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //Al pulsar NO no hace nada
+                //Al pulsar volver a la carta NO hace nada
             }
         });
-        //Al pulsar fuera o al presionar el boton back no se cancela el dialogo
+
+        //Al pulsar fuera o al dar al boton de atras no se cancela el dialogo
         setCancelable(false);
-        //Cuando rotemos el dialogo setRetainInstance(true) para funcionamiento correcto
-        setRetainInstance(true);
         return builder.create();
     }
 }
-

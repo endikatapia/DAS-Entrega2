@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        app:key="cat_datos_personales"
+        app:title="@string/prefs">
+
+        <ListPreference
+            app:dialogTitle="@string/eligeComida"
+            app:entries="@array/comidas"
+            app:entryValues="@array/codigoscomidas"
+            app:key="comidapref"
+            app:summary="@string/eligeComida"
+            app:title="@string/pregComida" />
+        <ListPreference
+            app:dialogTitle="@string/eligeIdioma"
+            app:entries="@array/idiomas"
+            app:entryValues="@array/codigosidiomas"
+            app:key="idiomapref"
+            app:summary="@string/eligeIdioma"
+            app:title="@string/pregIdioma" />
+
+    </PreferenceCategory>
+</PreferenceScreen>
