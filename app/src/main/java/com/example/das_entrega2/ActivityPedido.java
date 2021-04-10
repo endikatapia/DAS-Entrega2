@@ -1,7 +1,13 @@
 package com.example.das_entrega2;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.preference.PreferenceManager;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import android.app.NotificationManager;
 import android.content.Context;
@@ -14,6 +20,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -79,6 +90,32 @@ public class ActivityPedido extends AppCompatActivity {
 
         String pst2 = getString(R.string.postre2);
         String pst3 = getString(R.string.postre3);
+
+
+
+
+
+
+        //OBTENER EL TOKEN DESDE FIREBASE
+        //Antes de volver a la carta se lanzara una notificacion por mensajeria FCM
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+
+                            return;
+                        }
+                        String token = task.getResult().getToken();
+                        System.out.println("TOKEN FCM: " + token);
+                    }
+                });
+
+
+
+
+
+
 
         lv2 = findViewById(R.id.lv2);
         tvPrecio = (TextView) findViewById(R.id.textViewPrecio);
@@ -220,6 +257,39 @@ public class ActivityPedido extends AppCompatActivity {
     }
 
     public void onClickIrCarta(View v){
+
+
+        Bundle extras= getIntent().getExtras();
+        if (extras != null) {
+            double precioT = extras.getDouble("precio");
+            String preciostr = String.valueOf(precioT);
+            System.out.println("Precio Total (FCM): " + preciostr);
+
+            Data datos = new Data.Builder()
+                    .putString("precio", preciostr)
+                    .build();
+
+
+            OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionEnviarNotificacion.class)
+                    .setInputData(datos)
+                    .build();
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
+
+                    .observe(this, new Observer<WorkInfo>() {
+                        @Override
+                        public void onChanged(WorkInfo workInfo) {
+                            if (workInfo != null && workInfo.getState().isFinished()) {
+
+                            }
+                        }
+                    });
+            WorkManager.getInstance(this).enqueue(otwr);
+
+        }
+
+
+
+
         //cuando se pulse volver a la carta se podra realizar otro pedido
         Intent intentVolverCarta = new Intent(ActivityPedido.this,MainActivity.class);
         //Guardar lo que habia en MainActivity con el flag FLAG_ACTIVITY_REORDER_TO_FRONT

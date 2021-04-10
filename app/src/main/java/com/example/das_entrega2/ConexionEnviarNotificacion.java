@@ -17,21 +17,18 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
-public class ConexionBDInsertarUsuario extends Worker {
+public class ConexionEnviarNotificacion extends Worker {
 
-
-    public ConexionBDInsertarUsuario(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+    public ConexionEnviarNotificacion(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        String direccion = "http://ec2-54-167-31-169.compute-1.amazonaws.com/etapia008/WEB/insertarUsuario.php";
+        String direccion = "http://ec2-54-167-31-169.compute-1.amazonaws.com/etapia008/WEB/enviarNotificacionPrecio.php";
         HttpURLConnection urlConnection = null;
-
-        String nombre = getInputData().getString("username");
-        String contraseña = getInputData().getString("password");
+        String precio = getInputData().getString("precio");
         try {
             URL destino = new URL(direccion);
             urlConnection = (HttpURLConnection) destino.openConnection();
@@ -40,8 +37,7 @@ public class ConexionBDInsertarUsuario extends Worker {
 
 
             Uri.Builder builder = new Uri.Builder()
-                    .appendQueryParameter("nombre", nombre)
-                    .appendQueryParameter("contraseña", contraseña);
+                    .appendQueryParameter("precio", precio);
             String parametros = builder.build().getEncodedQuery();
 
             urlConnection.setRequestMethod("POST");
@@ -51,32 +47,6 @@ public class ConexionBDInsertarUsuario extends Worker {
             PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
             out.print(parametros);
             out.close();
-
-            /*
-            JSONObject parametrosJSON = new JSONObject();
-            parametrosJSON.put("nombre", nombre);
-            parametrosJSON.put("contraseña", contraseña);
-
-
-            urlConnection.setRequestMethod("POST");
-            urlConnection.setDoOutput(true);
-            urlConnection.setRequestProperty("Content-Type","application/json");
-
-            PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
-            out.print(parametrosJSON.toString());
-            out.close();
-
-             */
-
-            //EN PHP
-            //INSERT INTO `usuarios` (`nombre`, `contraseña`) VALUES ('Pruebadesdephpmyadmin', 'nohash1')
-
-
-            //String parametros = "nombre=" + nombre + "&contraseña="+contraseña;
-
-
-
-
 
 
             int statusCode = urlConnection.getResponseCode();
@@ -96,5 +66,6 @@ public class ConexionBDInsertarUsuario extends Worker {
         }
         return Result.failure();
     }
+
 
 }

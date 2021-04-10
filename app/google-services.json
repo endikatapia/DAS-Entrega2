@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1051854186413",
+    "project_id": "das-entrega-2",
+    "storage_bucket": "das-entrega-2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051854186413:android:fbff301dc4ab3fbb5c6324",
+        "android_client_info": {
+          "package_name": "com.example.das_entrega2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1051854186413-383dfq8fvmprkqm5s632ril7ad0oh01a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgxfRWPLDHJCW4947r3vSj9lpVev9Jh7Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1051854186413-383dfq8fvmprkqm5s632ril7ad0oh01a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
