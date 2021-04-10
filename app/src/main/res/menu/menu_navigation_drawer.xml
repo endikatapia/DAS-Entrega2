@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+    <item android:title="Primer menú">
+        <menu>
+            <item
+                android:id="@+id/captarImagen"
+                android:icon="@android:drawable/ic_menu_camera"
+                android:title="Captar Imagenes" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/maps"
+        android:icon="@android:drawable/ic_dialog_map"
+        android:title="Geo Maps" />
+    <item
+        android:id="@+id/borrar"
+        android:icon="@android:drawable/ic_delete"
+        android:title="Borrar" />
+</menu>

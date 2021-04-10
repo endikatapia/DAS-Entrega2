@@ -2,6 +2,8 @@ package com.example.das_entrega2;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.Observer;
 import androidx.preference.PreferenceManager;
@@ -28,6 +30,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.navigation.NavigationView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -73,6 +77,34 @@ public class MainActivity extends AppCompatActivity implements DialogoPostre.Lis
 
         //poner la toolbar personalizada
         setSupportActionBar(findViewById(R.id.toolbar));
+
+        final DrawerLayout elmenudesplegable = findViewById(R.id.drawer_layout);
+        NavigationView elnavigation = findViewById(R.id.elnavigationview);
+        elnavigation.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+           @Override
+           public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+               switch (item.getItemId()){
+                   case R.id.captarImagen:
+                       System.out.println("Ir a la actividad de la camara");
+                       Intent intentcamara = new Intent(MainActivity.this,ActivityCamara.class);
+                       startActivity(intentcamara);
+                       break;
+                   case R.id.maps:
+                       System.out.println("Ir a google Maps");
+
+                       break;
+               }
+               elmenudesplegable.closeDrawers();
+               return false;
+           }
+       });
+
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.menu_hamburger);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+
+
 
         //TextViews de bienvenida al usuario
         bienvenido= findViewById(R.id.textViewBienvenido);
@@ -220,6 +252,15 @@ public class MainActivity extends AppCompatActivity implements DialogoPostre.Lis
                 break;
 
             }
+
+            //cuando se pulse en el navigation drawer --> para que se abra
+            case android.R.id.home: {
+                final DrawerLayout elmenudesplegable = findViewById(R.id.drawer_layout);
+                elmenudesplegable.openDrawer(GravityCompat.START);
+                return true;
+            }
+
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -229,7 +270,15 @@ public class MainActivity extends AppCompatActivity implements DialogoPostre.Lis
     //Asi evitaremos incongruencias en la pila de actividades
     @Override
     public void onBackPressed() {
-        this.moveTaskToBack(true);
+        final DrawerLayout elmenudesplegable = findViewById(R.id.drawer_layout);
+        //si esta abierto que se cierre
+        if (elmenudesplegable.isDrawerOpen(GravityCompat.START)) {
+            elmenudesplegable.closeDrawer(GravityCompat.START);
+        } else {
+            //sino poner la app en segundo plano
+            //super.onBackPressed();
+            this.moveTaskToBack(true);
+        }
     }
 
 
