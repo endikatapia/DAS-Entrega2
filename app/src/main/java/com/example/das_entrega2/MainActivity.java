@@ -91,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements DialogoPostre.Lis
                        break;
                    case R.id.maps:
                        System.out.println("Ir a google Maps");
+                       Intent intentmapa = new Intent(MainActivity.this,ActivityMapa.class);
+                       startActivity(intentmapa);
 
                        break;
                }
