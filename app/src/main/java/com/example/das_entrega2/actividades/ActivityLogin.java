@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
@@ -22,6 +22,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.das_entrega2.workers.ConexionBDComprobarUsuario;
+import com.example.das_entrega2.workers.ConexionBDInsertarUsuario;
+import com.example.das_entrega2.dialogos.DialogoLogin;
+import com.example.das_entrega2.PasswordAuth;
+import com.example.das_entrega2.R;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -32,7 +38,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Locale;
 
-public class ActivityLogin extends AppCompatActivity implements  DialogoLogin.ListenerdelDialogo  {
+public class ActivityLogin extends AppCompatActivity implements DialogoLogin.ListenerdelDialogo {
 
     ImageView logo;
     EditText usernameet;
@@ -153,7 +159,7 @@ public class ActivityLogin extends AppCompatActivity implements  DialogoLogin.Li
 
                                             //INTENT A MAIN ACTIVITY
                                             System.out.println("El usuario "+username+ " existe Y la contraseña es correcta --> MAIN ACTIVITY");
-                                            Intent intentMainActivity = new Intent(ActivityLogin.this,MainActivity.class);
+                                            Intent intentMainActivity = new Intent(ActivityLogin.this, MainActivity.class);
                                             //guardamos el usuario para que salga en MainActivity
                                             intentMainActivity.putExtra("usuario",username);
                                             startActivity(intentMainActivity);
@@ -184,16 +190,24 @@ public class ActivityLogin extends AppCompatActivity implements  DialogoLogin.Li
                                         System.out.println("DESDE EL PHP (con): " + con);
 
                                     }
-                                    //si no existe el usuario preguntarle si desea registrarse en la BD remota
-                                    else {
-                                        System.out.println("El usuario no existe en la BD");
-                                        //Toast.makeText(ActivityLogin.this, "El usuario " + username + " no existe", Toast.LENGTH_SHORT).show();
-                                        //preguntar si quiere insertarlo con un dialog
-                                        DialogFragment df = new DialogoLogin(username);
-                                        df.show(getSupportFragmentManager(), "login");
+                                    else{ //Toast diciendole que el usuario no esta registrado
+                                        //TOAST PERSONALIZADO con layout_toast.xml
+                                        LayoutInflater inflater = getLayoutInflater();
+                                        View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root));
+
+                                        String usudialogo = getString(R.string.usudialogo);
+                                        String noestaregistrado = getString(R.string.noestareg);
+
+                                        TextView text = (TextView) layout.findViewById(R.id.text);
+                                        text.setText(usudialogo+ usernameet.getText().toString()+ noestaregistrado);
+
+                                        Toast toast = new Toast(ActivityLogin.this);
+                                        toast.setDuration(Toast.LENGTH_SHORT);
+                                        toast.setView(layout);
+                                        toast.show();;
 
 
-                                        //insertarUsuario(username, hashedpassword);
+
                                     }
                                 } catch (ParseException e) {
                                     e.printStackTrace();
@@ -208,6 +222,115 @@ public class ActivityLogin extends AppCompatActivity implements  DialogoLogin.Li
                     });
             WorkManager.getInstance(this).enqueue(otwr);
         }
+
+
+    }
+
+
+
+
+    public void onClickRegistrate(View v) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        System.out.println("REGISTRAR USUARIO");
+        String username = usernameet.getText().toString();
+        System.out.println("Username: " + username);
+
+        String password = passwordet.getText().toString();
+        System.out.println("Password: " + password);
+
+        if (username.matches("") || password.matches("") ) {
+            System.out.println("La Contraseña o el Usuario debe tener al menos 1 caracter");
+            String almenos1caracter = getString(R.string.almenos1caracter);
+
+            //TOAST PERSONALIZADO con layout_toast.xml
+            LayoutInflater inflater = getLayoutInflater();
+            View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root)); //inflamos la vista con el layout
+
+            TextView text = (TextView) layout.findViewById(R.id.text);
+            text.setText(almenos1caracter); // le indicamos el texto
+
+            Toast toast = new Toast(this);
+            toast.setDuration(Toast.LENGTH_SHORT); //duracion corta
+            toast.setView(layout); //le establecemos el layout al Toast
+            toast.show(); //lo enseñamos
+
+        } else {
+
+            hashedpassword = PasswordAuth.generateStrongPasswordHash(password);
+            System.out.println("HASHED PASSWORD: " + hashedpassword);
+
+            Data datos = new Data.Builder()
+                    .putString("username", username)
+                    .putString("password", hashedpassword)
+                    .build();
+
+
+            OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDComprobarUsuario.class)
+                    .setInputData(datos)
+                    .build();
+
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
+                    .observe(this, new Observer<WorkInfo>() {
+                        @Override
+                        public void onChanged(WorkInfo workInfo) {
+                            if (workInfo != null && workInfo.getState().isFinished()) {
+                                try {
+                                    String result = workInfo.getOutputData().getString("resultado");
+                                    //JSONArray jsonArray = null;
+                                    JSONParser parser = new JSONParser();
+                                    JSONObject json = null;
+
+                                    json = (JSONObject) parser.parse(result);
+
+                                    if (json != null) {
+                                        //si existe el usuario --> TOAST AVISANDOLE
+                                        String nom = (String) json.get("nombre");
+                                        String con = (String) json.get("contraseña");
+
+                                        String yaexiste = getString(R.string.yaexiste);
+                                        String usudialo = getString(R.string.usudialogo);
+
+                                        //TOAST PERSONALIZADO con layout_toast.xml
+                                        LayoutInflater inflater = getLayoutInflater();
+                                        View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root)); //inflamos la vista con el layout
+
+                                        TextView text = (TextView) layout.findViewById(R.id.text);
+                                        text.setText(usudialo + nom + yaexiste); // le indicamos el texto
+
+                                        Toast toast = new Toast(ActivityLogin.this);
+                                        toast.setDuration(Toast.LENGTH_SHORT); //duracion corta
+                                        toast.setView(layout); //le establecemos el layout al Toast
+                                        toast.show(); //lo enseñamos
+
+
+
+
+                                        System.out.println("El usuario "+username+ " ya existe");
+
+                                        //sino coinciden Toast con contraseña incorrecta
+
+                                        System.out.println("DESDE EL PHP (nom): " + nom);
+                                        System.out.println("DESDE EL PHP (con): " + con);
+
+                                    }
+                                    //si no existe el usuario preguntarle si desea registrarse en la BD remota
+                                    else {
+                                        System.out.println("El usuario no existe en la BD");
+                                        //Toast.makeText(ActivityLogin.this, "El usuario " + username + " no existe", Toast.LENGTH_SHORT).show();
+                                        //preguntar si quiere insertarlo con un dialog
+                                        DialogFragment df = new DialogoLogin(username);
+                                        df.show(getSupportFragmentManager(), "login");
+                                        //insertarUsuario(username, hashedpassword);
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        }
+                    });
+            WorkManager.getInstance(this).enqueue(otwr);
+        }
+
 
 
     }

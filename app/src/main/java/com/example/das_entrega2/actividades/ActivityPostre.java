@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +29,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.das_entrega2.dialogos.DialogoFinal;
+import com.example.das_entrega2.R;
+import com.example.das_entrega2.miBD;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,7 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
 
-public class ActivityPostre extends AppCompatActivity implements FragmentLVMultipleChoice.listenerDelFragment,DialogoFinal.ListenerdelDialogo {
+public class ActivityPostre extends AppCompatActivity implements FragmentLVMultipleChoice.listenerDelFragment, DialogoFinal.ListenerdelDialogo {
 
     ListView listView;
     ArrayAdapter eladaptador;

@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
+
+import com.example.das_entrega2.R;
 
 import java.util.Locale;
 
@@ -45,7 +47,7 @@ public class ActivityPreferencias extends AppCompatActivity {
 
     public void onClickGuardar(View v){
         //Al clickar guardar se establecen las nuevas preferencias y vamos a MainActivity
-        Intent i = new Intent(this,MainActivity.class);
+        Intent i = new Intent(this, MainActivity.class);
         //recogemos el usuario desde MainActivity y se lo volvemos a pasar a MainActivity para que se mantenga
         Bundle extras = getIntent().getExtras();
         if (extras != null) {

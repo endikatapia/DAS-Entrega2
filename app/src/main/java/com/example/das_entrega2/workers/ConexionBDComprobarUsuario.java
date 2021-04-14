@@ -1,34 +1,40 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.workers;
 
 import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
-public class ConexionEnviarNotificacion extends Worker {
+public class ConexionBDComprobarUsuario extends Worker {
 
-    public ConexionEnviarNotificacion(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+
+    public ConexionBDComprobarUsuario(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        String direccion = "http://ec2-54-167-31-169.compute-1.amazonaws.com/etapia008/WEB/enviarNotificacionPrecio.php";
+        String direccion = "http://ec2-54-167-31-169.compute-1.amazonaws.com/etapia008/WEB/comprobarUsuario.php";
         HttpURLConnection urlConnection = null;
-        String precio = getInputData().getString("precio");
+        Data resultados = null;
+
+
+        String nombre = getInputData().getString("username");
+        String contraseña = getInputData().getString("password");
         try {
             URL destino = new URL(direccion);
             urlConnection = (HttpURLConnection) destino.openConnection();
@@ -37,7 +43,8 @@ public class ConexionEnviarNotificacion extends Worker {
 
 
             Uri.Builder builder = new Uri.Builder()
-                    .appendQueryParameter("precio", precio);
+                    .appendQueryParameter("nombre", nombre)
+                    .appendQueryParameter("contraseña", contraseña);;
             String parametros = builder.build().getEncodedQuery();
 
             urlConnection.setRequestMethod("POST");
@@ -50,11 +57,23 @@ public class ConexionEnviarNotificacion extends Worker {
 
 
             int statusCode = urlConnection.getResponseCode();
+            System.out.println(statusCode);
             if (statusCode==200){
-                return Result.success();
+                BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                String line, result = "";
+                while ((line = bufferedReader.readLine()) != null) {
+                    result += line;
+                }
+                resultados = new Data.Builder()
+                        .putString("resultado",result)
+                        .build();
+                inputStream.close();
+                System.out.println("Resultado" + result);
+
             }
 
-            System.out.println(statusCode);
+
 
 
         } catch (ProtocolException e) {
@@ -64,8 +83,7 @@ public class ConexionEnviarNotificacion extends Worker {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return Result.failure();
+        return Result.success(resultados);
     }
-
 
 }

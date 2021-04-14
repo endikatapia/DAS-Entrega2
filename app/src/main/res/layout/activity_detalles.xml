@@ -4,11 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ActivityDetalles">
+    tools:context=".actividades.ActivityDetalles">
 
     <fragment
         android:id="@+id/fragmentFotoIndv"
-        android:name="com.example.das_entrega2.FragmentDetalles"
+        android:name="com.example.das_entrega2.actividades.FragmentDetalles"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:layout_editor_absoluteX="161dp"

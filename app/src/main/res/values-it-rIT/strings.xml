@@ -80,4 +80,7 @@
     <string name="postre3">Tiramisu</string>
     <string name="postre4">Panna cotta</string>
     <string name="aña">" aggiunto"</string>
+    <string name="registrarse">Iscriviti</string>
+    <string name="yaexiste">" esiste già"</string>
+    <string name="noestareg">" non sei registrato, premi ISCRIVITI"</string>
 </resources>

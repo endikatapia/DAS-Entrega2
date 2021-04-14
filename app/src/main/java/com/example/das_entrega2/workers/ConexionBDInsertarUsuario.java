@@ -1,37 +1,34 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.workers;
 
 import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
-import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
-public class ConexionBDComprobarUsuario extends Worker {
+public class ConexionBDInsertarUsuario extends Worker {
 
 
-    public ConexionBDComprobarUsuario(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+    public ConexionBDInsertarUsuario(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        String direccion = "http://ec2-54-167-31-169.compute-1.amazonaws.com/etapia008/WEB/comprobarUsuario.php";
+        String direccion = "http://ec2-54-167-31-169.compute-1.amazonaws.com/etapia008/WEB/insertarUsuario.php";
         HttpURLConnection urlConnection = null;
-        Data resultados = null;
-
 
         String nombre = getInputData().getString("username");
         String contraseña = getInputData().getString("password");
@@ -44,7 +41,7 @@ public class ConexionBDComprobarUsuario extends Worker {
 
             Uri.Builder builder = new Uri.Builder()
                     .appendQueryParameter("nombre", nombre)
-                    .appendQueryParameter("contraseña", contraseña);;
+                    .appendQueryParameter("contraseña", contraseña);
             String parametros = builder.build().getEncodedQuery();
 
             urlConnection.setRequestMethod("POST");
@@ -55,25 +52,39 @@ public class ConexionBDComprobarUsuario extends Worker {
             out.print(parametros);
             out.close();
 
+            /*
+            JSONObject parametrosJSON = new JSONObject();
+            parametrosJSON.put("nombre", nombre);
+            parametrosJSON.put("contraseña", contraseña);
+
+
+            urlConnection.setRequestMethod("POST");
+            urlConnection.setDoOutput(true);
+            urlConnection.setRequestProperty("Content-Type","application/json");
+
+            PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
+            out.print(parametrosJSON.toString());
+            out.close();
+
+             */
+
+            //EN PHP
+            //INSERT INTO `usuarios` (`nombre`, `contraseña`) VALUES ('Pruebadesdephpmyadmin', 'nohash1')
+
+
+            //String parametros = "nombre=" + nombre + "&contraseña="+contraseña;
+
+
+
+
+
 
             int statusCode = urlConnection.getResponseCode();
-            System.out.println(statusCode);
             if (statusCode==200){
-                BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                String line, result = "";
-                while ((line = bufferedReader.readLine()) != null) {
-                    result += line;
-                }
-                resultados = new Data.Builder()
-                        .putString("resultado",result)
-                        .build();
-                inputStream.close();
-                System.out.println("Resultado" + result);
-
+                return Result.success();
             }
 
-
+            System.out.println(statusCode);
 
 
         } catch (ProtocolException e) {
@@ -83,7 +94,7 @@ public class ConexionBDComprobarUsuario extends Worker {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return Result.success(resultados);
+        return Result.failure();
     }
 
 }

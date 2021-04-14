@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.example.das_entrega2.R;
 
 public class FragmentDetalles extends Fragment {
 

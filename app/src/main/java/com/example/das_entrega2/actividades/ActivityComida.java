@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,12 +21,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.das_entrega2.R;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class ActivityComida extends AppCompatActivity implements FragmentLVMultipleChoice.listenerDelFragment{
+public class ActivityComida extends AppCompatActivity implements FragmentLVMultipleChoice.listenerDelFragment {
 
     ListView listView;
     ArrayAdapter eladaptador;
@@ -408,7 +410,7 @@ public class ActivityComida extends AppCompatActivity implements FragmentLVMulti
 
 
         //Volver a MainActivity para seguir con el pedido
-        Intent i2 = new Intent(ActivityComida.this,MainActivity.class);
+        Intent i2 = new Intent(ActivityComida.this, MainActivity.class);
         //Guardar el estado anterior de MainActivity con el flag FLAG_ACTIVITY_REORDER_TO_FRONT
         i2.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(i2);

@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/fragmentLista"
-        android:name="com.example.das_entrega2.FragmentLVMultipleChoice"
+        android:name="com.example.das_entrega2.actividades.FragmentLVMultipleChoice"
         android:layout_width="230dp"
         android:layout_height="match_parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -16,7 +16,7 @@
 
     <fragment
         android:id="@+id/fragmentFotoIndv"
-        android:name="com.example.das_entrega2.FragmentDetalles"
+        android:name="com.example.das_entrega2.actividades.FragmentDetalles"
         android:layout_width="245dp"
         android:layout_height="match_parent"
         app:layout_constraintStart_toEndOf="@+id/fragmentLista"

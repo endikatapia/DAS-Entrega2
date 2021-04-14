@@ -1,18 +1,13 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.Observer;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.Data;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
 
 import android.content.Context;
 import android.content.Intent;
@@ -21,27 +16,15 @@ import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.das_entrega2.R;
+import com.example.das_entrega2.dialogos.DialogoPostre;
 import com.google.android.material.navigation.NavigationView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements DialogoPostre.ListenerdelDialogo {
@@ -86,12 +69,12 @@ public class MainActivity extends AppCompatActivity implements DialogoPostre.Lis
                switch (item.getItemId()){
                    case R.id.captarImagen:
                        System.out.println("Ir a la actividad de la camara");
-                       Intent intentcamara = new Intent(MainActivity.this,ActivityCamara.class);
+                       Intent intentcamara = new Intent(MainActivity.this, ActivityCamara.class);
                        startActivity(intentcamara);
                        break;
                    case R.id.maps:
                        System.out.println("Ir a google Maps");
-                       Intent intentmapa = new Intent(MainActivity.this,ActivityMapa.class);
+                       Intent intentmapa = new Intent(MainActivity.this, ActivityMapa.class);
                        startActivity(intentmapa);
 
                        break;
@@ -218,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements DialogoPostre.Lis
 
     //al pulsar si en el dialogo ir a DiologoPostre
     public void alpulsarSi(){
-        Intent i2 = new Intent(MainActivity.this,ActivityPostre.class);
+        Intent i2 = new Intent(MainActivity.this, ActivityPostre.class);
         startActivity(i2);
     }
 
@@ -238,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements DialogoPostre.Lis
             //entre ellas la comida favorita y el idioma preferido
             case R.id.opcion1: {
                 System.out.println("Ajustes");
-                Intent intentPreferencias = new Intent(MainActivity.this,ActivityPreferencias.class);
+                Intent intentPreferencias = new Intent(MainActivity.this, ActivityPreferencias.class);
                 intentPreferencias.putExtra("usuario",user); //le pasamos el usuario como extra a la actividad de las prefs
                 startActivity(intentPreferencias);
 

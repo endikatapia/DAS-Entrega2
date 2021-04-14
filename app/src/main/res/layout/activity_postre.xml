@@ -4,11 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ActivityPostre">
+    tools:context=".actividades.ActivityPostre">
 
     <fragment
         android:id="@+id/fragmentLista"
-        android:name="com.example.das_entrega2.FragmentLVMultipleChoice"
+        android:name="com.example.das_entrega2.actividades.FragmentLVMultipleChoice"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         app:layout_constraintEnd_toEndOf="parent"

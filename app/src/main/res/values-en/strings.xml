@@ -80,4 +80,7 @@
     <string name="postre3">Tiramisu</string>
     <string name="postre4">Panna cotta</string>
     <string name="aña">" added"</string>
+    <string name="registrarse">Sign up</string>
+    <string name="yaexiste">" already exists"</string>
+    <string name="noestareg">" is not registered, press SIGN UP"</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.das_entrega2.R;
 
 public class ElAdaptadorRecycler extends RecyclerView.Adapter<ElViewHolder> {
     //Se crea una clase que extiende a la clase genérica RecyclerView.Adapter

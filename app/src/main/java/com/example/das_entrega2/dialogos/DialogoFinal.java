@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.dialogos;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -8,6 +8,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+
+import com.example.das_entrega2.R;
 
 public class DialogoFinal extends DialogFragment {
 

@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +21,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.das_entrega2.workers.ConexionEnviarNotificacion;
+import com.example.das_entrega2.R;
+import com.example.das_entrega2.miBD;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -291,7 +294,7 @@ public class ActivityPedido extends AppCompatActivity {
 
 
         //cuando se pulse volver a la carta se podra realizar otro pedido
-        Intent intentVolverCarta = new Intent(ActivityPedido.this,MainActivity.class);
+        Intent intentVolverCarta = new Intent(ActivityPedido.this, MainActivity.class);
         //Guardar lo que habia en MainActivity con el flag FLAG_ACTIVITY_REORDER_TO_FRONT
         intentVolverCarta.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intentVolverCarta);

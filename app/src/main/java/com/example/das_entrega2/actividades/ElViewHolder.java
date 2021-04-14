@@ -1,4 +1,4 @@
-package com.example.das_entrega2;
+package com.example.das_entrega2.actividades;
 
 import android.content.Intent;
 import android.view.View;
@@ -7,6 +7,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.das_entrega2.R;
+import com.example.das_entrega2.actividades.ActivityComida;
 
 public class ElViewHolder extends RecyclerView.ViewHolder {
     public TextView eltexto;
@@ -25,7 +28,7 @@ public class ElViewHolder extends RecyclerView.ViewHolder {
             @Override
             public void onClick(View view) {
                 //creamos el intent para ir a la actividad que mostrara la lista de los platos de la categoria seleccionada
-                Intent i1 = new Intent(itemView.getContext(),ActivityComida.class);
+                Intent i1 = new Intent(itemView.getContext(), ActivityComida.class);
                 //Cuando se haga click en un cardView se guardara la posicion seleccionada de esa categoria
                 //mas tarde se usara ese numero para establecer la lista de platos de esa categoria
                 //mediante el metodo ponerLista() de ActivityComida

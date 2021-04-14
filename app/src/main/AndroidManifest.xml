@@ -29,21 +29,21 @@
                 android:resource="@xml/configalmacen"/>
         </provider>
 
-        <activity android:name=".ActivityMapa"></activity>
-        <activity android:name=".ActivityCamara"></activity>
-        <activity android:name=".ActivityPedido">
+        <activity android:name=".actividades.ActivityMapa"></activity>
+        <activity android:name=".actividades.ActivityCamara"></activity>
+        <activity android:name=".actividades.ActivityPedido">
             <intent-filter>
                 <action android:name="AVISO" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".ActivityDetalles" />
-        <activity android:name=".ActivityPostre" />
-        <activity android:name=".ActivityPreferencias" />
-        <activity android:name=".ActivityComida" />
-        <activity android:name=".MainActivity" />
-        <activity android:name=".ActivityLogin">
+        <activity android:name=".actividades.ActivityDetalles" />
+        <activity android:name=".actividades.ActivityPostre" />
+        <activity android:name=".actividades.ActivityPreferencias" />
+        <activity android:name=".actividades.ActivityComida" />
+        <activity android:name=".actividades.MainActivity" />
+        <activity android:name=".actividades.ActivityLogin">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
