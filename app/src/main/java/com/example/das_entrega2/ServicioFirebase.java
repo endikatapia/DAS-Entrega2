@@ -47,7 +47,7 @@ public class ServicioFirebase extends FirebaseMessagingService {
             }
 
 
-            if (remoteMessage.getNotification().getClickAction().equals("AVISO")) {
+            //if (remoteMessage.getNotification().getClickAction().equals("AVISO")) {
                 //configurar notificacion
                 elBuilder.setSmallIcon(android.R.drawable.stat_sys_warning)
                         .setContentTitle("Precio del último pedido")
@@ -55,7 +55,7 @@ public class ServicioFirebase extends FirebaseMessagingService {
                         .setSubText("Ristorante Endika")
                         .setVibrate(new long[]{0, 1000, 500, 1000})
                         .setAutoCancel(true); //cancelar la notificacion al dar click;
-            }
+            //}
             /*
             else if (remoteMessage.getNotification().getClickAction().equals("MENSAJE")) {
                 Intent i = new Intent(this, Actividad2.class);

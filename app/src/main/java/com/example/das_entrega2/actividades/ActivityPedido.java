@@ -1,9 +1,11 @@
 package com.example.das_entrega2.actividades;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.preference.PreferenceManager;
+import androidx.work.BackoffPolicy;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
@@ -14,13 +16,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.das_entrega2.PasswordAuth;
+import com.example.das_entrega2.workers.ConexionBDComprobarToken;
+import com.example.das_entrega2.workers.ConexionBDComprobarUsuario;
+import com.example.das_entrega2.workers.ConexionBDGetTokens;
+import com.example.das_entrega2.workers.ConexionBDInsertarToken;
 import com.example.das_entrega2.workers.ConexionEnviarNotificacion;
 import com.example.das_entrega2.R;
 import com.example.das_entrega2.miBD;
@@ -29,8 +39,17 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class ActivityPedido extends AppCompatActivity {
 
@@ -61,6 +80,39 @@ public class ActivityPedido extends AppCompatActivity {
         getBaseContext().getResources().updateConfiguration(configuration, context.getResources().getDisplayMetrics());
 
         setContentView(R.layout.activity_pedido);
+
+
+
+
+
+        //OBTENER EL TOKEN DESDE FIREBASE
+        //Al volver a la carta se lanzara una notificacion por mensajeria FCM a todos los tokens
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+
+                            return;
+                        }
+                        String token = task.getResult().getToken();
+                        System.out.println("TOKEN FCM: " + token);
+
+                        comprobarInsertarToken(token);
+
+
+
+                    }
+                });
+
+
+
+
+
+
+
+
+
 
         //Definir los platos que estan en mas de 1 idioma con getString. De esta manera mirara en strings.xml.
         String p2 = getString(R.string.pizza2);
@@ -93,28 +145,6 @@ public class ActivityPedido extends AppCompatActivity {
 
         String pst2 = getString(R.string.postre2);
         String pst3 = getString(R.string.postre3);
-
-
-
-
-
-
-        //OBTENER EL TOKEN DESDE FIREBASE
-        //Antes de volver a la carta se lanzara una notificacion por mensajeria FCM
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if (!task.isSuccessful()) {
-
-                            return;
-                        }
-                        String token = task.getResult().getToken();
-                        System.out.println("TOKEN FCM: " + token);
-                    }
-                });
-
-
 
 
 
@@ -259,21 +289,162 @@ public class ActivityPedido extends AppCompatActivity {
         }
     }
 
-    public void onClickIrCarta(View v){
+
+    public void comprobarInsertarToken(String token){
+        //COMPROBAR SI EL TOKEN EXISTE
+        Data datos = new Data.Builder()
+                .putString("token", token)
+                .build();
 
 
+        OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDComprobarToken.class)
+                .setInputData(datos)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
+                .observe(this, new Observer<WorkInfo>() {
+                    @Override
+                    public void onChanged(WorkInfo workInfo) {
+                        if (workInfo != null && workInfo.getState().isFinished()) {
+                            try {
+                                String result = workInfo.getOutputData().getString("resultado");
+                                //JSONArray jsonArray = null;
+                                JSONParser parser = new JSONParser();
+                                JSONObject json = null;
+
+                                json = (JSONObject) parser.parse(result);
+
+                                if (json != null) {
+                                    //si existe el token --> comprobar si la contraseña es correcta
+                                    String token = (String) json.get("token");
+                                    System.out.println("DESDE EL PHP (token): " + token);
+
+                                }
+                                else{ //El token no existe se añade diciendole que el usuario no esta registrado
+                                    System.out.println("El token se va añadir a la BD remota porque no existe");
+                                    insertarToken(token);
+
+
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(otwr);
+
+    }
+
+
+
+    public void insertarToken(String token){
+        //INSERTAR EL TOKEN
+        System.out.println("INSERTAR TOKEN EN LA BD REMOTA");
+        Data datos = new Data.Builder()
+                .putString("token", token)
+                .build();
+
+
+        OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDInsertarToken.class)
+                .setInputData(datos)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
+                .observe(this, new Observer<WorkInfo>() {
+                    @Override
+                    public void onChanged(WorkInfo workInfo) {
+                        if (workInfo != null && workInfo.getState().isFinished()) {
+
+
+                        }
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(otwr);
+
+    }
+
+
+    public void conseguirTokensYenviarNotificacion(){
+
+        //CONSEGUIR TODOS LOS TOKENS
+        OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDGetTokens.class)
+                .build();
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
+                .observe(this, new Observer<WorkInfo>() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @Override
+                    public void onChanged(WorkInfo workInfo) {
+                        if(workInfo != null && workInfo.getState().isFinished()){
+                            //TextView textViewResult = findViewById(R.id.textoResultado);
+
+                            String result = workInfo.getOutputData().getString("resultado");
+                            System.out.println("Resultado EN ACTIVITYPEDIDO:" + result);
+                            String sinprimeryultimo= result.substring( 1, result.length() - 1 );
+                            System.out.println("Resultado sin la 1 y la ultima: " + sinprimeryultimo);
+
+                            String[] tokens = sinprimeryultimo.split(",");
+
+
+
+                            //quitarle las comillas del principio y del final
+                            for (int i=0; i<tokens.length;i++){
+                                String tokenConComillas = tokens[i];
+
+                                String token= tokenConComillas.substring( 1, tokenConComillas.length() - 1 );
+                                System.out.println("TOKEN " + i + ": " + token);
+
+                                //enviar los tokens sin comillas
+                                tokens[i]=token;
+                                //tokens.add(token);
+
+                            }
+
+
+                            //mirar que se escriban en un fichero
+
+                            enviarNotificacion(tokens);
+
+
+
+
+                        }
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(otwr);
+
+        //return tokens;
+
+    }
+
+
+    public void enviarNotificacion(String[] tokens){
         Bundle extras= getIntent().getExtras();
         if (extras != null) {
             double precioT = extras.getDouble("precio");
             String preciostr = String.valueOf(precioT);
             System.out.println("Precio Total (FCM): " + preciostr);
 
+
+
+            for (int i=0; i<tokens.length;i++){
+
+                //System.out.println("TOKEN EN notificacion " + i + ": " + tokens[i]);
+
+
+            }
+
             Data datos = new Data.Builder()
                     .putString("precio", preciostr)
+                    .putStringArray("tokens",tokens)
                     .build();
 
 
+
+
             OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionEnviarNotificacion.class)
+                    //.setInitialDelay(3, TimeUnit.SECONDS)
                     .setInputData(datos)
                     .build();
             WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
@@ -290,6 +461,24 @@ public class ActivityPedido extends AppCompatActivity {
 
         }
 
+    }
+
+
+
+
+
+
+    public void onClickIrCarta(View v){
+
+
+
+
+
+
+        //CONSEGUIR LOS TOKENS
+        //ENVIAR LA NOTIFICACION A TODOS LOS TOKENS
+        //GUARDAR LOS TOKENS EN UNA ARRAY DE STRINGS
+        conseguirTokensYenviarNotificacion();
 
 
 
