@@ -5,13 +5,18 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
+import androidx.preference.PreferenceManager;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import java.util.Locale;
 
 public class ServicioFirebase extends FirebaseMessagingService {
 
@@ -31,6 +36,19 @@ public class ServicioFirebase extends FirebaseMessagingService {
         }
         if (remoteMessage.getNotification() != null) {
             //si el mensaje es una notificacion
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            String idioma = prefs.getString("idiomapref", "es");
+
+            Locale nlocale = new Locale(idioma);
+            Locale.setDefault(nlocale);
+            Configuration configuration = getBaseContext().getResources().getConfiguration();
+            configuration.setLocale(nlocale);
+            configuration.setLayoutDirection(nlocale);
+
+            Context context = getBaseContext().createConfigurationContext(configuration);
+            getBaseContext().getResources().updateConfiguration(configuration, context.getResources().getDisplayMetrics());
+
+
 
             NotificationManager elManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationCompat.Builder elBuilder = new NotificationCompat.Builder(this, "IdCanal");
@@ -47,15 +65,18 @@ public class ServicioFirebase extends FirebaseMessagingService {
             }
 
 
-            //if (remoteMessage.getNotification().getClickAction().equals("AVISO")) {
+            if (remoteMessage.getNotification().getClickAction().equals("AVISO")) {
+                String notifir = getString(R.string.notifir);
+                String precultped = getString(R.string.precultped);
+
                 //configurar notificacion
                 elBuilder.setSmallIcon(android.R.drawable.stat_sys_warning)
-                        .setContentTitle("Precio del último pedido")
-                        .setContentText("Precio del último pedido: " + precio + " €")
+                        .setContentTitle(notifir)
+                        .setContentText(precultped + precio + " €")
                         .setSubText("Ristorante Endika")
                         .setVibrate(new long[]{0, 1000, 500, 1000})
                         .setAutoCancel(true); //cancelar la notificacion al dar click;
-            //}
+            }
             /*
             else if (remoteMessage.getNotification().getClickAction().equals("MENSAJE")) {
                 Intent i = new Intent(this, Actividad2.class);

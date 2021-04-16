@@ -83,4 +83,9 @@
     <string name="registrarse">Sign up</string>
     <string name="yaexiste">" already exists"</string>
     <string name="noestareg">" is not registered, press SIGN UP"</string>
+    <string name="titalmenos1caracter">"Title must have at least 1 character "</string>
+    <string name="subidaafirebase">Image uploaded to Firebase</string>
+    <string name="eligefoto">You must take a photo or choose from the gallery to upload it to Firebase</string>
+    <string name="notifir">A new order was placed</string>
+    <string name="precultped">"Last order price: "</string>
 </resources>

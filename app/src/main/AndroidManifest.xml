@@ -4,12 +4,14 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <uses-feature android:name="android.hardware.camera2.full" android:required="true"/>
+    <uses-feature
+        android:name="android.hardware.camera2.full"
+        android:required="true" />
 
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -19,19 +21,21 @@
         android:supportsRtl="true"
         android:theme="@style/TemaDAS"
         android:usesCleartextTraffic="true">
+        <activity android:name=".actividades.ActivityFotoDetalles"></activity>
+        <activity android:name=".actividades.ActivityFotos" />
 
         <provider
-            android:authorities="com.example.das_entrega2"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.das_entrega2"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/configalmacen"/>
+                android:resource="@xml/configalmacen" />
         </provider>
 
-        <activity android:name=".actividades.ActivityMapa"></activity>
-        <activity android:name=".actividades.ActivityCamara"></activity>
+        <activity android:name=".actividades.ActivityMapa" />
+        <activity android:name=".actividades.ActivityCamara" />
         <activity android:name=".actividades.ActivityPedido">
             <intent-filter>
                 <action android:name="AVISO" />
@@ -64,7 +68,6 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyA0r5YJlQS6Gy4XUebe2Ki-gNexgVoFar4" />
-
     </application>
 
 </manifest>

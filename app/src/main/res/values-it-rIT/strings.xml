@@ -83,4 +83,9 @@
     <string name="registrarse">Iscriviti</string>
     <string name="yaexiste">" esiste già"</string>
     <string name="noestareg">" non sei registrato, premi ISCRIVITI"</string>
+    <string name="titalmenos1caracter">Titolo devono contenere almeno 1 carattere</string>
+    <string name="subidaafirebase">Immagine caricata su Firebase</string>
+    <string name="eligefoto">Devi scattare una foto o scegliere dalla galleria per caricarla su Firebase</string>
+    <string name="notifir">È stato effettuato un nuovo ordine</string>
+    <string name="precultped">"Prezzo ultimo ordine: "</string>
 </resources>
