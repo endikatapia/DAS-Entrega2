@@ -367,14 +367,18 @@ public class ActivityCamara extends AppCompatActivity {
                         .build();
 
 
-                //si ha tecleado algo en los 2 campos --> DialogoLogin con contructor (String user)
+
                 WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
                         .observe(this, new Observer<WorkInfo>() {
                             @Override
                             public void onChanged(WorkInfo workInfo) {
                                 if (workInfo != null && workInfo.getState().isFinished()) {
-                                    //TextView textViewResult = findViewById(R.id.textoResultado);
-                                    //textViewResult.setText(workInfo.getOutputData().getString("datos"));
+                                    try {
+                                        Thread.sleep(3000); // Delay para que se suba la foto a Firebase y se pueda cargar correctamente
+
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         });

@@ -87,4 +87,7 @@
     <string name="eligefoto">Debes sacar una foto o elegir desde la galeria para subirla a Firebase</string>
     <string name="notifir">Se realizó un nuevo pedido</string>
     <string name="precultped">"Precio del último pedido: "</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="configure">Configure</string>
 </resources>

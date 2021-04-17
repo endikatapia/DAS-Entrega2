@@ -1,0 +1,53 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:background="@drawable/logomasbrillo"
+android:padding="@dimen/widget_margin"
+android:orientation="vertical"
+android:theme="@style/ThemeOverlay.DAS_Entrega2.AppWidgetContainer">
+
+    <TextView
+        android:id="@+id/platosMomento"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:text="Platos del momento"
+        android:textAlignment="center"
+        android:textSize="17sp"
+        android:fontFamily="casual"
+        android:textStyle="bold"
+        android:textColor="#000000"/>
+
+
+    <TextView
+        android:id="@+id/entrante"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="Entrante: "
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:fontFamily="casual"
+        android:textStyle="bold"
+        android:textColor="#000000"/>
+
+    <TextView
+        android:id="@+id/principal"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="Principal: "
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:fontFamily="casual"
+        android:textStyle="bold"
+        android:textColor="#000000"/>
+
+    <TextView
+        android:id="@+id/postr"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="Postre: "
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:fontFamily="casual"
+        android:textStyle="bold"
+        android:textColor="#000000"/>
+</LinearLayout>

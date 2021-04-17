@@ -21,7 +21,28 @@
         android:supportsRtl="true"
         android:theme="@style/TemaDAS"
         android:usesCleartextTraffic="true">
-        <activity android:name=".actividades.ActivityFotoDetalles"></activity>
+        <receiver android:name=".widget.WidgetPlatosMomento"  android:label="Widget Ristorante">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.example.das_entrega2.ACTUALIZAR_WIDGET" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_platos_momento_info" />
+        </receiver>
+
+        <receiver android:name=".widget.AlarmManagerBroadcastReceiver"/>
+
+
+        <activity android:name=".widget.WidgetPlatosMomentoConfigureActivity">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".actividades.ActivityFotoDetalles" />
         <activity android:name=".actividades.ActivityFotos" />
 
         <provider
