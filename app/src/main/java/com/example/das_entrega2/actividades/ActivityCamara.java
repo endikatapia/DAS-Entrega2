@@ -239,6 +239,9 @@ public class ActivityCamara extends AppCompatActivity {
         if (requestCode == CODIGO_GALERIA && resultCode == RESULT_OK) {
 
             uriimagen = data.getData();
+            imageName = new File(uriimagen.getPath()).getName();
+            System.out.println("Nombre de la imagen de la GALERIA: " + imageName);
+            /*
             imageName = uriimagen.toString().split("%2F")[uriimagen.toString().split("%2F").length-1];
             System.out.println("Nombre de la imagen: " + imageName);
             //nos quedamos con los ultimos 6 digitos como nombre de la imagen
@@ -247,6 +250,7 @@ public class ActivityCamara extends AppCompatActivity {
                 System.out.println("Parte " + i + ": " + partes[i]);
             }
             imageName = partes[1];
+            */
 
             imageViewFoto.setImageURI(uriimagen);
         }
@@ -254,8 +258,9 @@ public class ActivityCamara extends AppCompatActivity {
         if (requestCode == CODIGO_FOTO_ARCHIVO && resultCode == RESULT_OK) {
 
 
-            imageName = uriimagen.toString().split("/")[uriimagen.toString().split("/").length-1];
-            System.out.println("Nombre de la imagen: " + imageName);
+            imageName = new File(uriimagen.getPath()).getName();
+            //imageName = uriimagen.toString().split("/")[uriimagen.toString().split("/").length-1];
+            System.out.println("Nombre de la imagen de SACAR FOTO: " + imageName);
 
             Bitmap imagenEscalada = null;
             try {

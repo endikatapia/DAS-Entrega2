@@ -1,17 +1,32 @@
 package com.example.das_entrega2.actividades;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Observer;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import com.example.das_entrega2.R;
+import com.example.das_entrega2.workers.ConexionBDGetFotos;
+import com.example.das_entrega2.workers.ConexionOverpassAPI;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -30,7 +45,15 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.maps.android.SphericalUtil;
 
+
+import org.json.JSONException;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback {
@@ -77,7 +100,7 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap elmapa) {
 
-        elmapa.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        elmapa.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
 
         //cosas que se pueden hacer con la camara
@@ -118,36 +141,6 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
         } else {
 
 
-            /*
-            //OVERPASS
-            String query = new OverpassQuery()
-                    //.format(JSON)
-                    .timeout(30)
-                    .filterQuery()
-                    .node()
-                    .amenity("parking")
-                    .tagNot("access", "private")
-                    .boundingBox(
-                            47.48047027491862, 19.039797484874725,
-                            47.51331674014172, 19.07404761761427
-                    )
-                    .end()
-                    .output(OutputVerbosity.BODY, OutputModificator.CENTER, OutputOrder.QT, 100)
-                    .build()
-                    ;
-
-            System.out.println("OVERPASS: " + query);
-
-             */
-
-
-
-
-
-
-
-
-
 
 
             //sacar posicion actual mediante geolocalizacion
@@ -166,14 +159,146 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
                         @Override
                         public void onSuccess(Location location) {
                             if (location != null) {
+
+
+
                                 System.out.println("LAT: " + location.getLatitude());
-                                System.out.println("LONG: " + location.getLatitude());
+                                System.out.println("LONG: " + location.getLongitude());
 
                                 LatLng coordenadasActuales = new LatLng(location.getLatitude(), location.getLongitude());
 
+
+
+                                double lat = location.getLatitude();
+                                double lon = location.getLongitude();
+
+                                double R = 6371;  // earth radius in km
+
+                                double radius = 0.75; // km
+
+                                double x1 = lon - Math.toDegrees(radius/R/Math.cos(Math.toRadians(lat)));//oeste
+
+                                double x2 = lon + Math.toDegrees(radius/R/Math.cos(Math.toRadians(lat))); //este
+
+                                double y1 = lat + Math.toDegrees(radius/R); //norte
+
+                                double y2 = lat - Math.toDegrees(radius/R); //sur
+
+                                //el orden --> (sur, oeste, norte y este)
+
+                                System.out.println("BBOX: (sur): " + y2 + " (oeste): " + x1 + " (norte): " + y1 + " (este): " + x2);
+
+                                String bbox=  "(" + y2 + "," + x1 + "," + y1 + "," + x2 + ")";
+
+                                System.out.println("BBOX: " + bbox);
+
+
+
+
+                                Data datos = new Data.Builder()
+                                        .putString("bbox", bbox)
+                                        .build();
+
+                                //el worker
+                                Constraints restricciones = new Constraints.Builder()
+                                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                                        .build();
+
+                                OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionOverpassAPI.class)
+                                        .setConstraints(restricciones)
+                                        .setInputData(datos)
+                                        .build();
+
+                                WorkManager.getInstance(ActivityMapa.this).getWorkInfoByIdLiveData(otwr.getId())
+                                        .observe(ActivityMapa.this, new Observer<WorkInfo>() {
+                                            @RequiresApi(api = Build.VERSION_CODES.O)
+                                            @Override
+                                            public void onChanged(WorkInfo workInfo) {
+                                                if(workInfo != null && workInfo.getState().isFinished()){
+
+
+                                                    //LA respuesta es un JSONObject no un JSONArray
+                                                    try {
+                                                        String result = workInfo.getOutputData().getString("resultado");
+                                                        JSONParser parser = new JSONParser();
+                                                        JSONObject json = (JSONObject) parser.parse(result);
+
+
+                                                        JSONArray elements = (JSONArray) json.get("elements");
+
+                                                        //System.out.println("ELEMENTOS: " + jsonArray);
+                                                        ArrayList<Double> lats = new ArrayList<>();
+                                                        ArrayList<Double> longs = new ArrayList<>();
+                                                        ArrayList<String> nombres = new ArrayList<>();
+
+
+
+                                                        Iterator i = elements.iterator();
+
+                                                        while (i.hasNext()) {
+
+                                                            JSONObject restaurante = (JSONObject) i.next();
+                                                            Double lat = (Double) restaurante.get("lat");
+                                                            lats.add(lat);
+                                                            Double lon = (Double) restaurante.get("lon");
+                                                            longs.add(lon);
+
+
+                                                            JSONObject tags = (JSONObject) restaurante.get("tags");
+                                                            String name = "";
+                                                            if (tags.containsKey("name")) {
+                                                                name = (String) tags.get("name");
+                                                                nombres.add(name);
+                                                            }
+                                                            else {
+                                                                name = "";
+                                                                nombres.add(name);
+                                                            }
+
+                                                            //System.out.println("lat: " + String.valueOf(lat));
+                                                            //System.out.println("lon: " + String.valueOf(lon));
+                                                        }
+
+                                                        String latitudes = lats.toString();
+                                                        System.out.println("LATS: " + latitudes);
+
+                                                        String longitudes = longs.toString();
+                                                        System.out.println("LONGS: " + longitudes);
+
+                                                        String nombresss = nombres.toString();
+                                                        System.out.println("NOMBRES: " + nombresss);
+
+
+                                                        //añadirMarcadoresDeRestaurantes(lats,longs);
+
+                                                        for (int j=0; j<lats.size();j++){
+                                                            LatLng coordss = new LatLng(lats.get(j), longs.get(j));
+                                                            elmapa.addMarker(new MarkerOptions()
+                                                                    .position(coordss)
+                                                                    .title(nombres.get(j)));
+                                                        }
+
+
+
+                                                        } catch (ParseException e) {
+                                                            e.printStackTrace();
+                                                        }
+
+
+
+                                                }
+                                            }
+                                        });
+                                WorkManager.getInstance(ActivityMapa.this).enqueue(otwr);
+
+
+
+
+
+
                                 elmapa.addMarker(new MarkerOptions()
                                         .position(coordenadasActuales)
-                                        .title("El marcador"));
+                                        .title("Ubicación actual"));
 
                                 CameraUpdate actualizar = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15);
                                 //CameraUpdateFactory.zoomTo(20);
@@ -187,6 +312,7 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
 
 
 
+                                /*
                                 //para poner marcadores
                                 elmapa.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                                     @Override
@@ -228,6 +354,8 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
                                     }
                                 });
 
+                                */
+
 
 
                             } else {
@@ -250,7 +378,19 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
 
 
 
-    }
+    } //FIN ON MAP READY
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -278,7 +418,9 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
                 break;
         }
 
-    }
+    } //FIN POLYLINE
+
+
 
 
 
