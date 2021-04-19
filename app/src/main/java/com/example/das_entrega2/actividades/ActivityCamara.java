@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.lifecycle.Observer;
+import androidx.preference.PreferenceManager;
 import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.NetworkType;
@@ -15,9 +16,13 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -79,6 +84,19 @@ public class ActivityCamara extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String idioma = prefs.getString("idiomapref", "es");
+
+        Locale nlocale = new Locale(idioma);
+        Locale.setDefault(nlocale);
+        Configuration configuration = getBaseContext().getResources().getConfiguration();
+        configuration.setLocale(nlocale);
+        configuration.setLayoutDirection(nlocale);
+
+        Context context = getBaseContext().createConfigurationContext(configuration);
+        getBaseContext().getResources().updateConfiguration(configuration, context.getResources().getDisplayMetrics());
+
         setContentView(R.layout.activity_camara);
 
         imageViewFoto = (ImageView) findViewById(R.id.imageViewFoto);
@@ -121,6 +139,17 @@ public class ActivityCamara extends AppCompatActivity {
             //EL PERMISO ESTÁ CONCEDIDO, EJECUTAR LA FUNCIONALIDAD
 
         }
+
+
+
+        //cuando se rote mantener la imagen en el ImageView y el nombre de la imagen
+        if(savedInstanceState != null) {
+            uriimagen = savedInstanceState.getParcelable("image");
+            imageName = savedInstanceState.getString("nommbreImagen");
+            imageViewFoto.setImageURI(uriimagen);
+        }
+
+
 
 
         /*
@@ -167,6 +196,14 @@ public class ActivityCamara extends AppCompatActivity {
         }
     }
 
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("image", uriimagen);
+        outState.putString("nommbreImagen",imageName);
+    }
 
 
 
@@ -241,16 +278,7 @@ public class ActivityCamara extends AppCompatActivity {
             uriimagen = data.getData();
             imageName = new File(uriimagen.getPath()).getName();
             System.out.println("Nombre de la imagen de la GALERIA: " + imageName);
-            /*
-            imageName = uriimagen.toString().split("%2F")[uriimagen.toString().split("%2F").length-1];
-            System.out.println("Nombre de la imagen: " + imageName);
-            //nos quedamos con los ultimos 6 digitos como nombre de la imagen
-            String[] partes = imageName.split("content://media/external/images/media/");
-            for (int i = 0 ; i<partes.length;i++){
-                System.out.println("Parte " + i + ": " + partes[i]);
-            }
-            imageName = partes[1];
-            */
+
 
             imageViewFoto.setImageURI(uriimagen);
         }
@@ -427,164 +455,7 @@ public class ActivityCamara extends AppCompatActivity {
 
 
         //conseguir las fotos de la BD remota con un worker
-        /*
-        Constraints restricciones = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
 
-        OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDGetFotos.class)
-                .setConstraints(restricciones)
-                .build();
-
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
-                .observe(this, new Observer<WorkInfo>() {
-                    @RequiresApi(api = Build.VERSION_CODES.O)
-                    @Override
-                    public void onChanged(WorkInfo workInfo) {
-                        if(workInfo != null && workInfo.getState().isFinished()){
-
-                            String result = workInfo.getOutputData().getString("resultado");
-                            JSONArray jsonArray = null;
-                            ArrayList<String> listaIDS = new ArrayList<>();
-                            ArrayList<String> listaTitulos = new ArrayList<>();
-                            ArrayList<String> listaDesc = new ArrayList<>();
-                            try {
-                                //JSONObject foto = new JSONObject(result);
-
-                                //id = foto.getString("id");
-                                //titulo = foto.getString("titulo");
-                                //descripcion = foto.getString("descripcion");
-
-
-                                jsonArray = new JSONArray(result);
-
-                                for(int i = 0; i < jsonArray.length(); i++)
-                                {
-                                    String id = jsonArray.getJSONObject(i).getString("id");
-                                    listaIDS.add(id);
-                                    String titulo = jsonArray.getJSONObject(i).getString("titulo");
-                                    listaTitulos.add(titulo);
-                                    String descripcion = jsonArray.getJSONObject(i).getString("descripcion");
-                                    listaDesc.add(descripcion);
-
-                                }
-
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-
-                            String resultadoStringIDS = listaIDS.toString();
-                            System.out.println("IDS DE LAS FOTOS: " + resultadoStringIDS);
-
-                            String resultadoStringTitulos = listaTitulos.toString();
-                            System.out.println("TITULOS DE LAS FOTOS: " + resultadoStringTitulos);
-
-                            String resultadoStringDesc = listaDesc.toString();
-                            System.out.println("DESCRIPCION DE LAS FOTOS: " + resultadoStringDesc);
-
-                            //poner los titulos en un list view y al clickar en uno
-                            //se abrira la informacion acerca de ella (titulo+desc) y la foto en grande
-
-
-
-                        }
-                    }
-                });
-        WorkManager.getInstance(this).enqueue(otwr);
-
-        //return tokens;
-
-
-
-
-        // Extraer información de la foto de la base de datos
-        /*
-        Data datos = new Data.Builder()
-                .putString("username", usuario)
-                .putString("imagen", fotoID)
-                .build();
-        Constraints restricciones = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-        OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(GetFotoWorker.class)
-                .setConstraints(restricciones)
-                .setInputData(datos)
-                .build();
-
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
-                .observe(this, status -> {
-                    if (status != null && status.getState().isFinished()) {
-                        String result = status.getOutputData().getString("datos");
-                        try {
-                            JSONObject foto = new JSONObject(result);
-
-                            titulo = foto.getString("titulo");
-                            descripcion = foto.getString("descripcion");
-                            fecha = foto.getString("fecha");
-                            latitud = foto.getString("latitud");
-                            longitud = foto.getString("longitud");
-
-                            editTextTitulo.setText(titulo);
-                            editTextDescripcion.setText(descripcion);
-                            textViewFecha.setText(fecha);
-
-                            FirebaseStorage storage = FirebaseStorage.getInstance();
-                            StorageReference storageRef = storage.getReference();
-                            StorageReference pathReference = storageRef.child(fotoID);
-                            pathReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri uri) {
-                                    Glide.with(InfoFotoActivity.this).load(uri).into(imageViewFoto);
-                                }
-                            });
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
-        WorkManager.getInstance(this).enqueue(otwr);
-
-         */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //poner esas fotos junto al titulo en una listViewPersonalizado
-
-        //cuando se clique en una foto se abrira la informacion acerca de ella (titulo+desc) y la foto en grande
-
-        /*
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference();
-        StorageReference pathReference = storageRef.child("IMG_20210416_125326_8552512348616060076.jpg");
-        pathReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                Glide.with(getApplicationContext()).load(uri).into(imageViewFoto);
-            }
-        });
-
-         */
-        
 
 
 

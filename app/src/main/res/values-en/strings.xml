@@ -88,4 +88,18 @@
     <string name="eligefoto">You must take a photo or choose from the gallery to upload it to Firebase</string>
     <string name="notifir">A new order was placed</string>
     <string name="precultped">"Last order price: "</string>
+    <string name="titulo">"Title: "</string>
+    <string name="descripcion">"Description: "</string>
+    <string name="cargaFirebase">" Image is loading from Firebase..."</string>
+    <string name="sacarFoto">Take a photo</string>
+    <string name="galeria">Gallery</string>
+    <string name="subirImagen">Upload Image</string>
+    <string name="verRecetas">See Recipes</string>
+    <string name="cargalistaFirebase">Loading from Firebase...</string>
+    <string name="captarImagenes">Capture Images</string>
+    <string name="encuentraRestaurantes">Find restaurants</string>
+    <string name="cargaMapa">The closest restaurants within a radius of 350 meters are being loaded...</string>
+    <string name="nosehanencont">No restaurants have been found within a radius of 350 meters</string>
+    <string name="opcAdi">Additional options</string>
+    <string name="mennav">Menu</string>
 </resources>

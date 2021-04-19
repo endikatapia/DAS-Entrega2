@@ -90,4 +90,18 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="configure">Configure</string>
+    <string name="titulo">"Título: "</string>
+    <string name="descripcion">"Descripción: "</string>
+    <string name="cargaFirebase">La imagen se está cargando desde Firebase...</string>
+    <string name="sacarFoto">Sacar Foto</string>
+    <string name="galeria">Galería</string>
+    <string name="subirImagen">Subir Imagen</string>
+    <string name="verRecetas">Ver Recetas</string>
+    <string name="cargalistaFirebase">Cargando desde Firebase...</string>
+    <string name="captarImagenes">Captar Imágenes</string>
+    <string name="encuentraRestaurantes">Encuentra Restaurantes</string>
+    <string name="cargaMapa">Se están cargando los restaurantes más cercanos en un rádio de 350 metros...</string>
+    <string name="nosehanencont">No se han encontrado restaurantes en un rádio de 350 metros</string>
+    <string name="opcAdi">Opciones adicionales</string>
+    <string name="mennav">Menú</string>
 </resources>

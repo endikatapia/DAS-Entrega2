@@ -3,19 +3,27 @@ package com.example.das_entrega2.actividades;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
+import androidx.preference.PreferenceManager;
 import androidx.work.Constraints;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.das_entrega2.R;
 import com.example.das_entrega2.workers.ConexionBDGetFotos;
@@ -24,6 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class ActivityFotos extends AppCompatActivity {
 
@@ -33,7 +42,42 @@ public class ActivityFotos extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String idioma = prefs.getString("idiomapref", "es");
+
+        Locale nlocale = new Locale(idioma);
+        Locale.setDefault(nlocale);
+        Configuration configuration = getBaseContext().getResources().getConfiguration();
+        configuration.setLocale(nlocale);
+        configuration.setLayoutDirection(nlocale);
+
+        Context context = getBaseContext().createConfigurationContext(configuration);
+        getBaseContext().getResources().updateConfiguration(configuration, context.getResources().getDisplayMetrics());
+
+
         setContentView(R.layout.activity_fotos);
+
+
+        //toast diciendo que esta cargando desde firebase
+        //TOAST PERSONALIZADO con layout_toast.xml
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root)); //inflamos la vista con el layout
+
+        String cargalistaFirebase = getString(R.string.cargalistaFirebase);
+
+        TextView text = (TextView) layout.findViewById(R.id.text);
+        text.setText(cargalistaFirebase); // le indicamos el texto
+
+        Toast toast = new Toast(this);
+        toast.setDuration(Toast.LENGTH_SHORT); //duracion corta
+        toast.setView(layout); //le establecemos el layout al Toast
+        toast.show(); //lo enseñamos
+
+
+
+
+
 
         lvfotos = findViewById(R.id.lvfotos);
 

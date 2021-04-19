@@ -1,15 +1,24 @@
 package com.example.das_entrega2.actividades;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -17,6 +26,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
+import androidx.preference.PreferenceManager;
 import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.NetworkType;
@@ -35,6 +45,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -54,20 +65,60 @@ import org.json.simple.parser.ParseException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Locale;
 
 
 public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback {
 
     //private static final OutputFormat JSON = null;
-    private int i=0;
-    private Double distancia;
-    Double distTotalRuta = 0.0 ;
 
+
+
+    Bitmap iconoRestaurante;
+    String nosehanencont;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String idioma = prefs.getString("idiomapref", "es");
+
+        Locale nlocale = new Locale(idioma);
+        Locale.setDefault(nlocale);
+        Configuration configuration = getBaseContext().getResources().getConfiguration();
+        configuration.setLocale(nlocale);
+        configuration.setLayoutDirection(nlocale);
+
+        Context context = getBaseContext().createConfigurationContext(configuration);
+        getBaseContext().getResources().updateConfiguration(configuration, context.getResources().getDisplayMetrics());
+
         setContentView(R.layout.activity_mapa);
+
+
+        //toast avisandole que los restaurantes mas cercanos tienen que cargar desde el API OpenStreetMap
+        //TOAST PERSONALIZADO con layout_toast.xml
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root)); //inflamos la vista con el layout
+
+        String cargaMapa = getString(R.string.cargaMapa);
+        nosehanencont = getString(R.string.nosehanencont);
+
+        TextView text = (TextView) layout.findViewById(R.id.text);
+        text.setText(cargaMapa); // le indicamos el texto
+
+        Toast toast = new Toast(this);
+        toast.setDuration(Toast.LENGTH_LONG); //duracion corta
+        toast.setView(layout); //le establecemos el layout al Toast
+        toast.show(); //lo enseñamos
+
+
+
+
+
+
+        BitmapDrawable bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.restauranteicono);
+        Bitmap b=bitmapdraw.getBitmap();
+        iconoRestaurante = Bitmap.createScaledBitmap(b, 84, 84, false);
 
 
         SupportMapFragment elfragmento = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentoMapa);
@@ -174,7 +225,7 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
 
                                 double R = 6371;  // earth radius in km
 
-                                double radius = 0.75; // km
+                                double radius = 0.9; // km
 
                                 double x1 = lon - Math.toDegrees(radius/R/Math.cos(Math.toRadians(lat)));//oeste
 
@@ -226,57 +277,72 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
 
                                                         JSONArray elements = (JSONArray) json.get("elements");
 
-                                                        //System.out.println("ELEMENTOS: " + jsonArray);
-                                                        ArrayList<Double> lats = new ArrayList<>();
-                                                        ArrayList<Double> longs = new ArrayList<>();
-                                                        ArrayList<String> nombres = new ArrayList<>();
+
+                                                            //System.out.println("ELEMENTOS: " + jsonArray);
+                                                            ArrayList<Double> lats = new ArrayList<>();
+                                                            ArrayList<Double> longs = new ArrayList<>();
+                                                            ArrayList<String> nombres = new ArrayList<>();
 
 
+                                                            Iterator i = elements.iterator();
 
-                                                        Iterator i = elements.iterator();
+                                                            while (i.hasNext()) {
 
-                                                        while (i.hasNext()) {
-
-                                                            JSONObject restaurante = (JSONObject) i.next();
-                                                            Double lat = (Double) restaurante.get("lat");
-                                                            lats.add(lat);
-                                                            Double lon = (Double) restaurante.get("lon");
-                                                            longs.add(lon);
+                                                                JSONObject restaurante = (JSONObject) i.next();
+                                                                Double lat = (Double) restaurante.get("lat");
+                                                                lats.add(lat);
+                                                                Double lon = (Double) restaurante.get("lon");
+                                                                longs.add(lon);
 
 
-                                                            JSONObject tags = (JSONObject) restaurante.get("tags");
-                                                            String name = "";
-                                                            if (tags.containsKey("name")) {
-                                                                name = (String) tags.get("name");
-                                                                nombres.add(name);
+                                                                JSONObject tags = (JSONObject) restaurante.get("tags");
+                                                                String name = "";
+                                                                if (tags.containsKey("name")) {
+                                                                    name = (String) tags.get("name");
+                                                                    nombres.add(name);
+                                                                } else {
+                                                                    name = "";
+                                                                    nombres.add(name);
+                                                                }
+
+                                                                //System.out.println("lat: " + String.valueOf(lat));
+                                                                //System.out.println("lon: " + String.valueOf(lon));
                                                             }
-                                                            else {
-                                                                name = "";
-                                                                nombres.add(name);
+
+
+
+
+                                                            String latitudes = lats.toString();
+                                                            System.out.println("LATS: " + latitudes);
+
+                                                            String longitudes = longs.toString();
+                                                            System.out.println("LONGS: " + longitudes);
+
+                                                            String nombresss = nombres.toString();
+                                                            System.out.println("NOMBRES: " + nombresss);
+
+
+                                                            //añadirMarcadoresDeRestaurantes(lats,longs);
+
+
+
+                                                            //sino ha encontrado restaurantes
+                                                            if (lats.size()==0) {
+                                                                //toast diciendo que no se han encontrado restaurantes en ese radio
+                                                                Toast.makeText(ActivityMapa.this, nosehanencont, Toast.LENGTH_SHORT).show();
+
+                                                            }
+                                                            for (int j = 0; j < lats.size(); j++) {
+                                                                LatLng coordss = new LatLng(lats.get(j), longs.get(j));
+                                                                elmapa.addMarker(new MarkerOptions()
+                                                                        .position(coordss)
+                                                                        .icon(BitmapDescriptorFactory.fromBitmap(iconoRestaurante))
+                                                                        .title(nombres.get(j)));
                                                             }
 
-                                                            //System.out.println("lat: " + String.valueOf(lat));
-                                                            //System.out.println("lon: " + String.valueOf(lon));
-                                                        }
-
-                                                        String latitudes = lats.toString();
-                                                        System.out.println("LATS: " + latitudes);
-
-                                                        String longitudes = longs.toString();
-                                                        System.out.println("LONGS: " + longitudes);
-
-                                                        String nombresss = nombres.toString();
-                                                        System.out.println("NOMBRES: " + nombresss);
 
 
-                                                        //añadirMarcadoresDeRestaurantes(lats,longs);
 
-                                                        for (int j=0; j<lats.size();j++){
-                                                            LatLng coordss = new LatLng(lats.get(j), longs.get(j));
-                                                            elmapa.addMarker(new MarkerOptions()
-                                                                    .position(coordss)
-                                                                    .title(nombres.get(j)));
-                                                        }
 
 
 
@@ -300,7 +366,8 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
                                         .position(coordenadasActuales)
                                         .title("Ubicación actual"));
 
-                                CameraUpdate actualizar = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15);
+                                //ubicacion actual con un zoom de 14
+                                CameraUpdate actualizar = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 14);
                                 //CameraUpdateFactory.zoomTo(20);
 
                                 elmapa.animateCamera(actualizar);
@@ -311,50 +378,6 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
                                 coordenadas.add(coordenadasActuales);
 
 
-
-                                /*
-                                //para poner marcadores
-                                elmapa.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-                                    @Override
-                                    public void onMapClick(LatLng latLng) {
-                                        elmapa.addMarker(new MarkerOptions()
-                                                .position(latLng)
-                                                .title("El marcador"));
-
-
-
-                                        coordenadas.add(latLng);
-
-
-                                        //https://www.geeksforgeeks.org/how-to-calculate-distance-between-two-locations-in-android/
-                                        distancia = SphericalUtil.computeDistanceBetween(coordenadas.get(i), coordenadas.get(i+1));
-                                        System.out.println("DISTANCIA ENTRE 2 PUNTOS: " + distancia + " METROS");
-
-
-                                        distTotalRuta = distTotalRuta + distancia;
-
-                                        System.out.println("DISTANCIA TOTAL RUTA: " +  distTotalRuta + " METROS");
-
-
-
-                                        Polyline polyline1 = elmapa.addPolyline(new PolylineOptions()
-                                                .clickable(true)
-                                                .add(coordenadas.get(i),
-                                                        coordenadas.get(i+1)
-                                                ));
-                                        // Store a data object with the polyline, used here to indicate an arbitrary type.
-                                        polyline1.setTag("A");
-                                        i++;
-                                        stylePolyline(polyline1);
-
-
-
-
-
-                                    }
-                                });
-
-                                */
 
 
 
