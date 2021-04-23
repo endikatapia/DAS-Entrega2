@@ -50,4 +50,12 @@ android:theme="@style/ThemeOverlay.DAS_Entrega2.AppWidgetContainer">
         android:fontFamily="casual"
         android:textStyle="bold"
         android:textColor="#000000"/>
+
+    <Button
+        android:id="@+id/buttonActualizar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Actualizar" />
+
 </LinearLayout>

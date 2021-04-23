@@ -70,16 +70,14 @@ import java.util.Locale;
 
 public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback {
 
-    //private static final OutputFormat JSON = null;
-
-
-
     Bitmap iconoRestaurante;
     String nosehanencont;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //establecer el idioma que había guardado en las preferencias --> por defecto: castellano
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String idioma = prefs.getString("idiomapref", "es");
 
@@ -94,8 +92,9 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
 
         setContentView(R.layout.activity_mapa);
 
-
-        //toast avisandole que los restaurantes mas cercanos tienen que cargar desde el API OpenStreetMap
+        //toast avisandole que los restaurantes mas cercanos tienen que cargar desde el API OpenStreetMap (Overpass)
+        //Tarda en torno a 5-10 segundos. EL API de Overpass nos permite hacer 2 peticiones en un minuto mas o menos
+        // Si se hacen demasiadas peticiones seguidas el API Overpass no reponderá correctamente
         //TOAST PERSONALIZADO con layout_toast.xml
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root)); //inflamos la vista con el layout
@@ -112,18 +111,16 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
         toast.show(); //lo enseñamos
 
 
-
-
-
-
+        //Bitmap para establecer como icono el restaurante
         BitmapDrawable bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.restauranteicono);
         Bitmap b=bitmapdraw.getBitmap();
         iconoRestaurante = Bitmap.createScaledBitmap(b, 84, 84, false);
 
 
+        //Para poder trabajar con el mapa deberemos utilizar el identificador que le hayamos asignado al
+        //Fragment donde se encuentra el mapa y llamar al método getMapAsync(…).
         SupportMapFragment elfragmento = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentoMapa);
         elfragmento.getMapAsync(this);
-
 
     }
 
@@ -151,31 +148,10 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap elmapa) {
 
+        //el mapa será de tipo HYBRID (satelite + localizaciones)
         elmapa.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
-
-        //cosas que se pueden hacer con la camara
-        /*
-        CameraUpdateFactory.zoomIn();
-
-        CameraUpdate actualizar = CameraUpdateFactory.newLatLngZoom(new LatLng(43.26, -2.95),9);
-
-        elmapa.moveCamera(actualizar);
-
-        LatLng nuevascoordenadas= new LatLng(43.26,-2.95);
-
-        CameraPosition Poscam = new CameraPosition.Builder()
-                .target(nuevascoordenadas)
-                .zoom(6)
-                .bearing(54)
-                .tilt(5)
-                .build();
-        CameraUpdate otravista = CameraUpdateFactory.newCameraPosition(Poscam);
-
-        elmapa.animateCamera(otravista);
-
-         */
-
+        //Si no tiene permisos para leer la Ubicación pedirlos
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //EL PERMISO NO ESTÁ CONCEDIDO, PEDIRLO
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -189,44 +165,47 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     0);
 
-        } else {
-
-
+        } else { //si ya tiene los permisos
 
 
             //sacar posicion actual mediante geolocalizacion
+            //Hay que instanciar el proveedor de posiciones
             FusedLocationProviderClient proveedordelocalizacion =
                     LocationServices.getFusedLocationProviderClient(this);
 
 
             LocationRequest peticion = LocationRequest.create();
-            peticion.setInterval(1000);
-            peticion.setFastestInterval(5000);
-            peticion.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            peticion.setInterval(1000); //cada cuántos milisegundos debe actualizarse
+            peticion.setFastestInterval(5000); //cada cuántos milisegundos somos capaces de gestionar una actualización
+            peticion.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); //Precisión y tipo de localización que se desea
 
 
+            //Llamar a getLastLocation() y añadir listeners
             proveedordelocalizacion.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                         @Override
                         public void onSuccess(Location location) {
-                            if (location != null) {
-
-
+                            if (location != null) { //si nos devuelve una localizacion
 
                                 System.out.println("LAT: " + location.getLatitude());
                                 System.out.println("LONG: " + location.getLongitude());
 
+                                //sacamos las coordenadas actuales y las guardamos en una variable LatLng
                                 LatLng coordenadasActuales = new LatLng(location.getLatitude(), location.getLongitude());
 
 
+                                //Ahora tenemos que calcular el BoundigBox
+                                //https://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide
+                                //El BOUNDINGBOX es el área (N,S,W,E) donde se van a buscar los restaurantes mas cercanos
 
                                 double lat = location.getLatitude();
                                 double lon = location.getLongitude();
 
                                 double R = 6371;  // earth radius in km
 
-                                double radius = 0.9; // km
+                                double radius = 0.35; // EL RADIO EN EL QUE REALIZAR LA BUSQUEDA (350 m)
 
+                                //sacar las diferentes coordenadas  (N,S,W,E) dependiendo de nuestra localización actual
                                 double x1 = lon - Math.toDegrees(radius/R/Math.cos(Math.toRadians(lat)));//oeste
 
                                 double x2 = lon + Math.toDegrees(radius/R/Math.cos(Math.toRadians(lat))); //este
@@ -236,121 +215,116 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
                                 double y2 = lat - Math.toDegrees(radius/R); //sur
 
                                 //el orden --> (sur, oeste, norte y este)
-
                                 System.out.println("BBOX: (sur): " + y2 + " (oeste): " + x1 + " (norte): " + y1 + " (este): " + x2);
 
                                 String bbox=  "(" + y2 + "," + x1 + "," + y1 + "," + x2 + ")";
 
                                 System.out.println("BBOX: " + bbox);
 
-
-
-
+                                //Al worker ConexionOverpassAPI se le pasan como datos el BoundingBox donde se realizará la busqueda.
                                 Data datos = new Data.Builder()
                                         .putString("bbox", bbox)
                                         .build();
 
-                                //el worker
+                                //el worker necesita conexion a internet
                                 Constraints restricciones = new Constraints.Builder()
                                         .setRequiredNetworkType(NetworkType.CONNECTED)
                                         .build();
 
+                                //El worker ConexionOverpassAPI mostrará los restaurantes más cercanos en un radio de 350 metros
                                 OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionOverpassAPI.class)
                                         .setConstraints(restricciones)
                                         .setInputData(datos)
                                         .build();
 
+                                //En ActivityMapa, se añade un Observer a la tarea antes de encolarla usando WorkManager
                                 WorkManager.getInstance(ActivityMapa.this).getWorkInfoByIdLiveData(otwr.getId())
                                         .observe(ActivityMapa.this, new Observer<WorkInfo>() {
                                             @RequiresApi(api = Build.VERSION_CODES.O)
                                             @Override
                                             public void onChanged(WorkInfo workInfo) {
                                                 if(workInfo != null && workInfo.getState().isFinished()){
-
-
-                                                    //LA respuesta es un JSONObject no un JSONArray
+                                                    //LA respuesta es un JSONObject muy largo, no un JSONArray
                                                     try {
+                                                        //recogemos el resultado que viene desde el worker al dar SUCESS
                                                         String result = workInfo.getOutputData().getString("resultado");
                                                         JSONParser parser = new JSONParser();
                                                         JSONObject json = (JSONObject) parser.parse(result);
 
-
+                                                        //Del JSONObject sacamos un JSONArray que tiene como clave 'elements'.
+                                                        //En este JSONArray encontraremos las latitudes, longitudes y nombres de los restaurantes encontrados
                                                         JSONArray elements = (JSONArray) json.get("elements");
 
+                                                        //Crear los 3 arraylist para guardar las latitudes, longitudes y nombres de los restaurantes encontrados
+                                                        ArrayList<Double> lats = new ArrayList<>();
+                                                        ArrayList<Double> longs = new ArrayList<>();
+                                                        ArrayList<String> nombres = new ArrayList<>();
 
-                                                            //System.out.println("ELEMENTOS: " + jsonArray);
-                                                            ArrayList<Double> lats = new ArrayList<>();
-                                                            ArrayList<Double> longs = new ArrayList<>();
-                                                            ArrayList<String> nombres = new ArrayList<>();
+                                                        //Usar el iterator para iterar sobre el JSONArray
+                                                        Iterator i = elements.iterator();
 
+                                                        //mientras exista elementos (restaurantes)
+                                                        while (i.hasNext()) {
+                                                            //obtenemos el JSONObject
+                                                            JSONObject restaurante = (JSONObject) i.next();
+                                                            //conseguimos su latitud
+                                                            Double lat = (Double) restaurante.get("lat");
+                                                            lats.add(lat);
+                                                            //conseguimos su longitud
+                                                            Double lon = (Double) restaurante.get("lon");
+                                                            longs.add(lon);
 
-                                                            Iterator i = elements.iterator();
-
-                                                            while (i.hasNext()) {
-
-                                                                JSONObject restaurante = (JSONObject) i.next();
-                                                                Double lat = (Double) restaurante.get("lat");
-                                                                lats.add(lat);
-                                                                Double lon = (Double) restaurante.get("lon");
-                                                                longs.add(lon);
-
-
-                                                                JSONObject tags = (JSONObject) restaurante.get("tags");
-                                                                String name = "";
-                                                                if (tags.containsKey("name")) {
-                                                                    name = (String) tags.get("name");
-                                                                    nombres.add(name);
-                                                                } else {
-                                                                    name = "";
-                                                                    nombres.add(name);
-                                                                }
-
-                                                                //System.out.println("lat: " + String.valueOf(lat));
-                                                                //System.out.println("lon: " + String.valueOf(lon));
+                                                            //conseguimos su nombre, solo si está registrado en la API.
+                                                            //Si no devolvemos un String vacío
+                                                            //Para acceder al nombre tenemos que lograr la clave 'tags' primero.
+                                                            JSONObject tags = (JSONObject) restaurante.get("tags");
+                                                            String name = "";
+                                                            if (tags.containsKey("name")) {
+                                                                //conseguimos el nombre
+                                                                name = (String) tags.get("name");
+                                                                nombres.add(name);
+                                                            } else {
+                                                                name = "";
+                                                                nombres.add(name);
                                                             }
 
-
-
-
-                                                            String latitudes = lats.toString();
-                                                            System.out.println("LATS: " + latitudes);
-
-                                                            String longitudes = longs.toString();
-                                                            System.out.println("LONGS: " + longitudes);
-
-                                                            String nombresss = nombres.toString();
-                                                            System.out.println("NOMBRES: " + nombresss);
-
-
-                                                            //añadirMarcadoresDeRestaurantes(lats,longs);
-
-
-
-                                                            //sino ha encontrado restaurantes
-                                                            if (lats.size()==0) {
-                                                                //toast diciendo que no se han encontrado restaurantes en ese radio
-                                                                Toast.makeText(ActivityMapa.this, nosehanencont, Toast.LENGTH_SHORT).show();
-
-                                                            }
-                                                            for (int j = 0; j < lats.size(); j++) {
-                                                                LatLng coordss = new LatLng(lats.get(j), longs.get(j));
-                                                                elmapa.addMarker(new MarkerOptions()
-                                                                        .position(coordss)
-                                                                        .icon(BitmapDescriptorFactory.fromBitmap(iconoRestaurante))
-                                                                        .title(nombres.get(j)));
-                                                            }
+                                                        }
 
 
 
 
+                                                        String latitudes = lats.toString();
+                                                        System.out.println("LATS: " + latitudes);
 
+                                                        String longitudes = longs.toString();
+                                                        System.out.println("LONGS: " + longitudes);
+
+                                                        String nombresss = nombres.toString();
+                                                        System.out.println("NOMBRES: " + nombresss);
+
+
+                                                        //si no ha encontrado ningún restaurante
+                                                        if (lats.size()==0) {
+                                                            //toast diciendo que no se han encontrado restaurantes en ese radio
+                                                            Toast.makeText(ActivityMapa.this, nosehanencont, Toast.LENGTH_SHORT).show();
+
+                                                        }
+                                                        //Para todos los restaurantes encontrados
+                                                        for (int j = 0; j < lats.size(); j++) {
+                                                            //conseguimos sus coordenas
+                                                            LatLng coordss = new LatLng(lats.get(j), longs.get(j));
+                                                            //ponemos un marcador en el mapa con el icono del restaurante en esas coordenadas y el nombre
+                                                            //del marcador será el nombre del restaurante
+                                                            elmapa.addMarker(new MarkerOptions()
+                                                                    .position(coordss)
+                                                                    .icon(BitmapDescriptorFactory.fromBitmap(iconoRestaurante))
+                                                                    .title(nombres.get(j)));
+                                                        }
 
 
                                                         } catch (ParseException e) {
                                                             e.printStackTrace();
                                                         }
-
-
 
                                                 }
                                             }
@@ -359,29 +333,20 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
 
 
 
-
-
-
+                                //añadimos como marcador al mapa nuestra posición actual
                                 elmapa.addMarker(new MarkerOptions()
                                         .position(coordenadasActuales)
                                         .title("Ubicación actual"));
 
-                                //ubicacion actual con un zoom de 14
+                                //Ubicacion actual con un zoom de 14
                                 CameraUpdate actualizar = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 14);
-                                //CameraUpdateFactory.zoomTo(20);
-
+                                //poner una animación a la camara mientra se acerca a la localización deseada.
                                 elmapa.animateCamera(actualizar);
 
 
 
-                                ArrayList<LatLng> coordenadas = new ArrayList<LatLng>();
-                                coordenadas.add(coordenadasActuales);
-
-
-
-
-
                             } else {
+                                //si no devuelve una localizacion --> LAT y LONG desconocidas
                                 System.out.println("LAT: (desconocida)");
                                 System.out.println("LONG: (desconocida)");
                             }
@@ -394,57 +359,10 @@ public class ActivityMapa extends FragmentActivity implements OnMapReadyCallback
                         }
                     });
 
-
         }
-
-
-
 
 
     } //FIN ON MAP READY
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //estilo de la linea
-    private void stylePolyline(Polyline polyline) {
-        String type = "";
-        // Get the data object stored with the polyline.
-        if (polyline.getTag() != null) {
-            type = polyline.getTag().toString();
-        }
-
-        switch (type) {
-            // If no type is given, allow the API to use the default.
-            case "A":
-                polyline.setEndCap(new RoundCap());
-                polyline.setWidth(12);
-                polyline.setColor(Color.RED);
-                polyline.setJointType(JointType.ROUND);
-
-                break;
-            case "B":
-                // Use a round cap at the start of the line.
-                polyline.setStartCap(new RoundCap());
-                break;
-        }
-
-    } //FIN POLYLINE
-
-
-
 
 
 

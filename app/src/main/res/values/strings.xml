@@ -104,4 +104,7 @@
     <string name="nosehanencont">No se han encontrado restaurantes en un rádio de 350 metros</string>
     <string name="opcAdi">Opciones adicionales</string>
     <string name="mennav">Menú</string>
+    <string name="reproducir">Reproducir</string>
+    <string name="detener">Detener</string>
+    <string name="repromus">Se está reproduciendo música</string>
 </resources>

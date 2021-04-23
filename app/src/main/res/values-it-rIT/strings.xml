@@ -102,4 +102,7 @@
     <string name="nosehanencont">Nessun ristorante è stato trovato nel raggio di 350 metri</string>
     <string name="opcAdi">Opzioni aggiuntive</string>
     <string name="mennav">Menu</string>
+    <string name="reproducir">Giocare</string>
+    <string name="detener">Fermare</string>
+    <string name="repromus">La musica sta suonando</string>
 </resources>

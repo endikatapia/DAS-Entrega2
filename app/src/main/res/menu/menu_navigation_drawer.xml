@@ -14,8 +14,18 @@
         android:id="@+id/maps"
         android:icon="@android:drawable/ic_dialog_map"
         android:title="@string/encuentraRestaurantes" />
-    <item
-        android:id="@+id/borrar"
-        android:icon="@android:drawable/ic_delete"
-        android:title="Borrar" />
+    <item android:title="Controla la música">
+        <menu>
+            <item
+                android:id="@+id/musicaplay"
+                android:icon="@android:drawable/ic_media_play"
+                android:title="@string/reproducir"
+                />
+            <item
+                android:id="@+id/musicapause"
+                android:icon="@drawable/stopmusic"
+                android:title="@string/detener"
+                />
+        </menu>
+    </item>
 </menu>

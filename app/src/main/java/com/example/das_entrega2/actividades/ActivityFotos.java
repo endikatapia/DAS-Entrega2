@@ -43,6 +43,7 @@ public class ActivityFotos extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //establecer idioma seleccionado en las preferencias (por defecto: castellano)
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String idioma = prefs.getString("idiomapref", "es");
 
@@ -59,7 +60,7 @@ public class ActivityFotos extends AppCompatActivity {
         setContentView(R.layout.activity_fotos);
 
 
-        //toast diciendo que esta cargando desde firebase
+        //toast diciendo que las imagenes pueden tardar en cargar desde firebase
         //TOAST PERSONALIZADO con layout_toast.xml
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root)); //inflamos la vista con el layout
@@ -75,57 +76,53 @@ public class ActivityFotos extends AppCompatActivity {
         toast.show(); //lo enseñamos
 
 
-
-
-
-
+        //ListView donde irán colocados los titulos de las recetas
         lvfotos = findViewById(R.id.lvfotos);
-
-
 
         System.out.println("Cargar la imagen desde Firebase y BDremota");
 
-        //ir a una nueva actividad
-
-
-        //conseguir las fotos de la BD remota con un worker
-
+        //Debe tener conexion a la red
         Constraints restricciones = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
+        //El worker ConexionBDGetFotos conseguirá todas las imagenes de la BD remota imagenes
         OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDGetFotos.class)
                 .setConstraints(restricciones)
                 .build();
 
+        //En ActivityFotos, se añade un Observer a la tarea antes de encolarla usando WorkManager
         WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
                 .observe(this, new Observer<WorkInfo>() {
                     @RequiresApi(api = Build.VERSION_CODES.O)
                     @Override
                     public void onChanged(WorkInfo workInfo) {
                         if(workInfo != null && workInfo.getState().isFinished()){
-
+                            //recogemos el resultado que viene desde el worker al dar SUCESS
                             String result = workInfo.getOutputData().getString("resultado");
                             JSONArray jsonArray = null;
+                            //La consulta que se realiza en el php es la siguiente -->
+                            //SELECT * FROM imagenes
+                            //Por lo tanto el resultado será un JSONArray que contendrá varios elementos. Cada uno con su id, titulo y descripción.
+
+                            //Crear los 3 arraylist que contendrán cada uno de los elementos de la imagen
                             ArrayList<String> listaIDS = new ArrayList<>();
                             ArrayList<String> listaTitulos = new ArrayList<>();
                             ArrayList<String> listaDesc = new ArrayList<>();
                             try {
-                                //JSONObject foto = new JSONObject(result);
-
-                                //id = foto.getString("id");
-                                //titulo = foto.getString("titulo");
-                                //descripcion = foto.getString("descripcion");
 
 
                                 jsonArray = new JSONArray(result);
 
                                 for(int i = 0; i < jsonArray.length(); i++)
                                 {
+                                    //'id' es la primera clave de los datos en el JSON
                                     String id = jsonArray.getJSONObject(i).getString("id");
                                     listaIDS.add(id);
+                                    //'titulo' es la segunda clave de los datos en el JSON
                                     String titulo = jsonArray.getJSONObject(i).getString("titulo");
                                     listaTitulos.add(titulo);
+                                    //'descripcion' es la tercera clave de los datos en el JSON
                                     String descripcion = jsonArray.getJSONObject(i).getString("descripcion");
                                     listaDesc.add(descripcion);
 
@@ -146,19 +143,18 @@ public class ActivityFotos extends AppCompatActivity {
                             String resultadoStringDesc = listaDesc.toString();
                             System.out.println("DESCRIPCION DE LAS FOTOS: " + resultadoStringDesc);
 
-                            //poner los titulos en un list view y al clickar en uno
-                            //se abrira la informacion acerca de ella (titulo+desc) y la foto en grande
+                            //poner los titulos en un list view mediante el adaptador
                             ArrayAdapter eladaptador =
                                     new ArrayAdapter<String>(ActivityFotos.this, android.R.layout.simple_list_item_1,listaTitulos);
-
                             lvfotos.setAdapter(eladaptador);
 
+                            //Al clickar sobre un elemento se abrirá una actividad con informacion detallada del mismo (imagen+titulo+descripcion).
                             lvfotos.setOnItemClickListener(new AdapterView.OnItemClickListener(){
                                 @Override
                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-                                    //seleccionarElemento(listaIDS.get(position),listaTitulos.get(position),listaDesc.get(position));
-                                    //intent a actividad y se carga la foto
+                                    //intent a ActivityFotoDetalles --> se carga la foto junto con el título y la descripción
                                     Intent intentfotodetalles = new Intent(ActivityFotos.this,ActivityFotoDetalles.class);
+                                    //pasarle como extras los datos de la posición seleccionada
                                     intentfotodetalles.putExtra("id",listaIDS.get(position));
                                     intentfotodetalles.putExtra("titulo",listaTitulos.get(position));
                                     intentfotodetalles.putExtra("descripcion",listaDesc.get(position));
@@ -171,100 +167,10 @@ public class ActivityFotos extends AppCompatActivity {
 
 
 
-
                         }
                     }
                 });
         WorkManager.getInstance(this).enqueue(otwr);
-
-        //return tokens;
-
-
-
-
-        // Extraer información de la foto de la base de datos
-        /*
-        Data datos = new Data.Builder()
-                .putString("username", usuario)
-                .putString("imagen", fotoID)
-                .build();
-        Constraints restricciones = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-        OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(GetFotoWorker.class)
-                .setConstraints(restricciones)
-                .setInputData(datos)
-                .build();
-
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
-                .observe(this, status -> {
-                    if (status != null && status.getState().isFinished()) {
-                        String result = status.getOutputData().getString("datos");
-                        try {
-                            JSONObject foto = new JSONObject(result);
-
-                            titulo = foto.getString("titulo");
-                            descripcion = foto.getString("descripcion");
-                            fecha = foto.getString("fecha");
-                            latitud = foto.getString("latitud");
-                            longitud = foto.getString("longitud");
-
-                            editTextTitulo.setText(titulo);
-                            editTextDescripcion.setText(descripcion);
-                            textViewFecha.setText(fecha);
-
-                            FirebaseStorage storage = FirebaseStorage.getInstance();
-                            StorageReference storageRef = storage.getReference();
-                            StorageReference pathReference = storageRef.child(fotoID);
-                            pathReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri uri) {
-                                    Glide.with(InfoFotoActivity.this).load(uri).into(imageViewFoto);
-                                }
-                            });
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
-        WorkManager.getInstance(this).enqueue(otwr);
-
-         */
-
-
-
-
-
-
-
-
-        //poner esas fotos junto al titulo en una listViewPersonalizado
-
-        //cuando se clique en una foto se abrira la informacion acerca de ella (titulo+desc) y la foto en grande
-
-        /*
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference();
-        StorageReference pathReference = storageRef.child("IMG_20210416_125326_8552512348616060076.jpg");
-        pathReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                Glide.with(getApplicationContext()).load(uri).into(imageViewFoto);
-            }
-        });
-
-         */
-
-
-
-
-
-
-
-
-
 
 
     }

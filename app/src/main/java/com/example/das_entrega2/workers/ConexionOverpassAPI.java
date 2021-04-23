@@ -26,65 +26,40 @@ public class ConexionOverpassAPI extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-
-
-        //CONSEGUIR EL BBOX
+        //CONSEGUIR EL BBOX que viene desde el worker
         String bbox= getInputData().getString("bbox");
 
-        System.out.println("BBOX QUERY");
 
-
-
+        //La dirección a la que le queremos hacer la petición tendrá el siguiente formato:
+        //"http://overpass-api.de/api/interpreter?data=query";
+        //La query en este caso es la siguiente:
+        //data=[out:json];node[amenity=restaurant]"+bbox+";out%20meta;"
+        //donde le indicamos que la respuesta debe ser JSON --> [out:json]
+        //Los nodos que debe buscar son de amenity=restaurant y los debe buscar en el bbox calculado en la actividad, es decir, en un radio de 350 metros.
+        //El problema que puede ocurrir en el worker es que si por ejemplo buscamos restaurantes en un areá muy abarrotada
+        //de restaurantes, el worker no podrá devolver tanta cantidad de datos y habrá un fallo en la ejecución.
+        //Por ese motivo se reduce a 350 metros la búsqueda de los restaurantes, para que el worker no tenga que cargar muchos datos
         String direccion = "https://www.overpass-api.de/api/interpreter?data=[out:json];node[amenity=restaurant]"+bbox+";out%20meta;";
-        //String query=" node["amenity"="restaurant"]
-        //(50.6,7.0,50.8,7.3);
-        //out;"
-
-        //http://www.overpass-api.de/api/xapi?node[rcn_ref=*][bbox=5.170799818181818,51.363934891891894,5.534436181818181,51.580151108108105]
-
-        //String overpass_query = """[out:json]
-        //(node["amenity"="restaurant"];
-        //bbox;
-        //out ;
-        //""";
-
-
-        //String direccion = "http://overpass-api.de/api/interpreter?data=query";
         HttpURLConnection urlConnection = null;
-
-
         Data resultados = null;
         try {
+            //Se genera un objeto HttpURLConnection con la configuración correspondiente
             URL destino = new URL(direccion);
             urlConnection = (HttpURLConnection) destino.openConnection();
             urlConnection.setConnectTimeout(60000);
             urlConnection.setReadTimeout(60000);
 
-            /*
-            Uri.Builder builder = new Uri.Builder()
-                    .appendQueryParameter("bbox", bbox);
-            String parametros = builder.build().getEncodedQuery();
-
-            urlConnection.setRequestMethod("POST");
-            urlConnection.setDoOutput(true);
-            urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-            PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
-            out.print(parametros);
-            out.close();
-
-             */
-
-
+            //Se mira el código de vuelta (debe ser 200), y se procesa el resultado
             int statusCode = urlConnection.getResponseCode();
-
             if (statusCode == 200) {
                 BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
                 String line, result = "";
+                //Vamos generando en la variable result el resultado final
                 while ((line = bufferedReader.readLine()) != null) {
                     result += line;
                 }
+                //Pares clave, valor
                 resultados = new Data.Builder()
                         .putString("resultado",result)
                         .build();
@@ -96,7 +71,7 @@ public class ConexionOverpassAPI extends Worker {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return Result.success(resultados);
+        return Result.success(resultados); //Devolver los resultados
     }
 
 

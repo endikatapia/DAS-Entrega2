@@ -24,62 +24,44 @@ public class ConexionBDInsertarToken extends Worker {
     @NonNull
     @Override
     public Result doWork() {
+        //En el servidor se encuentrá el PHP --> insertarToken.php
+        //Este PHP insertará un nuevo token en la BD remota.
+        //La BD remota tokens se compone de estos elementos:
+        //token: (PK) varchar(255)
         String direccion = "http://ec2-54-167-31-169.compute-1.amazonaws.com/etapia008/WEB/insertarToken.php";
         HttpURLConnection urlConnection = null;
 
+        //recibir los datos desde WorkManager: token
         String token = getInputData().getString("token");
         try {
+            //Se genera un objeto HttpURLConnection con la configuración correspondiente
             URL destino = new URL(direccion);
             urlConnection = (HttpURLConnection) destino.openConnection();
             urlConnection.setConnectTimeout(5000);
             urlConnection.setReadTimeout(5000);
 
-
+            //Para enviar parámetros al fichero PHP, se utiliza Uri.Builder
             Uri.Builder builder = new Uri.Builder()
                     .appendQueryParameter("token", token);
             String parametros = builder.build().getEncodedQuery();
 
-            urlConnection.setRequestMethod("POST");
-            urlConnection.setDoOutput(true);
-            urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
+            urlConnection.setRequestMethod("POST"); //Formato de envío
+            urlConnection.setDoOutput(true); //Necesario si se usa POST o PUT
+            urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded"); //Formato de los parámetros
+
+            //Para incluir los parámetros en la llamada se usa un objeto PrintWriter
             PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
             out.print(parametros);
             out.close();
 
-            /*
-            JSONObject parametrosJSON = new JSONObject();
-            parametrosJSON.put("nombre", nombre);
-            parametrosJSON.put("contraseña", contraseña);
-
-
-            urlConnection.setRequestMethod("POST");
-            urlConnection.setDoOutput(true);
-            urlConnection.setRequestProperty("Content-Type","application/json");
-
-            PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
-            out.print(parametrosJSON.toString());
-            out.close();
-
-             */
-
-            //EN PHP
-            //INSERT INTO `usuarios` (`nombre`, `contraseña`) VALUES ('Pruebadesdephpmyadmin', 'nohash1')
-
-
-            //String parametros = "nombre=" + nombre + "&contraseña="+contraseña;
-
-
-
-
-
-
+            //Se mira el código de vuelta (debe ser 200), y se procesa el resultado
             int statusCode = urlConnection.getResponseCode();
+            System.out.println(statusCode);
             if (statusCode==200){
+                //si ha ido bien devolver Sucess
                 return Result.success();
             }
-
-            System.out.println(statusCode);
 
 
         } catch (ProtocolException e) {
@@ -89,6 +71,7 @@ public class ConexionBDInsertarToken extends Worker {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //si algo ha fallado en la ejecución devolver Failure
         return Result.failure();
     }
 

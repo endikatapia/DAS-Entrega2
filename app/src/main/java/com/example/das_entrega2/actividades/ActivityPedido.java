@@ -82,11 +82,8 @@ public class ActivityPedido extends AppCompatActivity {
         setContentView(R.layout.activity_pedido);
 
 
-
-
-
         //OBTENER EL TOKEN DESDE FIREBASE
-        //Al volver a la carta se lanzara una notificacion por mensajeria FCM a todos los tokens
+        //Al volver a la carta se lanzara una notificacion por mensajeria FCM a todos los tokens que tengan registrada la app
         FirebaseInstanceId.getInstance().getInstanceId()
                 .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
                     @Override
@@ -95,22 +92,16 @@ public class ActivityPedido extends AppCompatActivity {
 
                             return;
                         }
+                        //Conocer el token que tiene asignado un dispositivo
                         String token = task.getResult().getToken();
                         System.out.println("TOKEN FCM: " + token);
 
+                        //En este método se comprueba si el token esta registrado en la BD remota 'tokens'con un Worker
+                        //Si no esta registrado lo insertará mediante otro Worker
                         comprobarInsertarToken(token);
-
-
 
                     }
                 });
-
-
-
-
-
-
-
 
 
 
@@ -145,9 +136,6 @@ public class ActivityPedido extends AppCompatActivity {
 
         String pst2 = getString(R.string.postre2);
         String pst3 = getString(R.string.postre3);
-
-
-
 
 
         lv2 = findViewById(R.id.lv2);
@@ -290,40 +278,48 @@ public class ActivityPedido extends AppCompatActivity {
     }
 
 
+    //Este método comprueba si el token que recibe esta registrado en la BD remota 'tokens' mediante un Worker
+    //Si no esta registrado lo insertará mediante otro Worker
     public void comprobarInsertarToken(String token){
-        //COMPROBAR SI EL TOKEN EXISTE
+        //Al worker ConexionBDComprobarToken se le pasan como datos el token generado por Firebase
         Data datos = new Data.Builder()
                 .putString("token", token)
                 .build();
 
-
+        //El worker ConexionBDComprobarToken comprobará si el token que se le pasa esta en la BD remota tokens
         OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDComprobarToken.class)
                 .setInputData(datos)
                 .build();
 
+        //En ActivityPedido, se añade un Observer a la tarea antes de encolarla usando WorkManager
         WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
                 .observe(this, new Observer<WorkInfo>() {
                     @Override
                     public void onChanged(WorkInfo workInfo) {
                         if (workInfo != null && workInfo.getState().isFinished()) {
                             try {
+                                //recogemos el resultado que viene desde el worker al dar SUCESS
                                 String result = workInfo.getOutputData().getString("resultado");
-                                //JSONArray jsonArray = null;
                                 JSONParser parser = new JSONParser();
                                 JSONObject json = null;
 
+                                //La consulta que se realiza en el php es la siguiente -->
+                                //SELECT * FROM tokens WHERE token='$token'
+                                //Por lo tanto el resultado será un JSONObject que contendrá un solo objeto con su token
                                 json = (JSONObject) parser.parse(result);
 
+                                //si el resultado de la consulta devuelve una línea, es decir, si el
+                                //token está registrado en la BD remota de phpmyAdmin tokens.
                                 if (json != null) {
-                                    //si existe el token --> comprobar si la contraseña es correcta
+                                    //se obtiene el token
                                     String token = (String) json.get("token");
                                     System.out.println("DESDE EL PHP (token): " + token);
 
                                 }
-                                else{ //El token no existe se añade diciendole que el usuario no esta registrado
+                                else{ //Si no devuelve nada
+                                    // El token no existe --> se añade a la BD remota mediante el método insertarToken
                                     System.out.println("El token se va añadir a la BD remota porque no existe");
                                     insertarToken(token);
-
 
                                 }
                             } catch (ParseException e) {
@@ -339,74 +335,93 @@ public class ActivityPedido extends AppCompatActivity {
 
 
 
+    //este método insertara el token en la BD remota tokens utilizando un Worker.
     public void insertarToken(String token){
-        //INSERTAR EL TOKEN
         System.out.println("INSERTAR TOKEN EN LA BD REMOTA");
+        //Al worker ConexionBDInsertarToken se le pasan como datos el token
         Data datos = new Data.Builder()
                 .putString("token", token)
                 .build();
 
-
+        //El worker ConexionBDInsertarToken insertará un nuevo token en la BD remota tokens.
         OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDInsertarToken.class)
                 .setInputData(datos)
                 .build();
 
+        //En ActivityPedido, se añade un Observer a la tarea antes de encolarla usando WorkManager
+        //Para insertar el token se utiliza la siguiente consulta en el php:
+        //INSERT INTO tokens VALUES ('$token')
         WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
                 .observe(this, new Observer<WorkInfo>() {
                     @Override
                     public void onChanged(WorkInfo workInfo) {
                         if (workInfo != null && workInfo.getState().isFinished()) {
-
-
                         }
                     }
                 });
         WorkManager.getInstance(this).enqueue(otwr);
-
     }
 
 
-    public void conseguirTokensYenviarNotificacion(){
 
+    //este metodo conseguirá todos los tokens que hay en la BD remota y
+    //enviará una notificación con mensajería FCM a todos esos tokens.
+    public void conseguirTokensYenviarNotificacion(){
         //CONSEGUIR TODOS LOS TOKENS
+        //El worker ConexionBDGetTokens conseguirá la lista de tokens de la BD remota tokens.
         OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionBDGetTokens.class)
                 .build();
+
+        //En ActivityPedido, se añade un Observer a la tarea antes de encolarla usando WorkManager
         WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
                 .observe(this, new Observer<WorkInfo>() {
                     @RequiresApi(api = Build.VERSION_CODES.O)
                     @Override
                     public void onChanged(WorkInfo workInfo) {
                         if(workInfo != null && workInfo.getState().isFinished()){
-                            //TextView textViewResult = findViewById(R.id.textoResultado);
-
+                            //recogemos el resultado que viene desde el worker al dar SUCESS
                             String result = workInfo.getOutputData().getString("resultado");
-                            System.out.println("Resultado EN ACTIVITYPEDIDO:" + result);
-                            String sinprimeryultimo= result.substring( 1, result.length() - 1 );
-                            System.out.println("Resultado sin la 1 y la ultima: " + sinprimeryultimo);
 
-                            String[] tokens = sinprimeryultimo.split(",");
+                            //La consulta que se realiza en el php es la siguiente -->
+                            //SELECT * FROM tokens
+                            //Por lo tanto el resultado será un JSONArray que contendrá varios elementos con la clave 'token'
+                            JSONArray jsonArray = null;
+                            //crear el ArrayList donde se van a ir añadiendo los tokens
+                            ArrayList<String> tokensAL = new ArrayList<>();
+                            try {
+
+                                jsonArray = new JSONArray(result);
+
+                                for(int i = 0; i < jsonArray.length(); i++)
+                                {
+                                    //'token' es la clave de los datos en el JSON
+                                    String token = jsonArray.getJSONObject(i).getString("token");
+                                    //se añade el token al ArrayList
+                                    tokensAL.add(token);
+                                }
 
 
-
-                            //quitarle las comillas del principio y del final
-                            for (int i=0; i<tokens.length;i++){
-                                String tokenConComillas = tokens[i];
-
-                                String token= tokenConComillas.substring( 1, tokenConComillas.length() - 1 );
-                                System.out.println("TOKEN " + i + ": " + token);
-
-                                //enviar los tokens sin comillas
-                                tokens[i]=token;
-                                //tokens.add(token);
-
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
 
 
-                            //mirar que se escriban en un fichero
+                            String resultadoStringTokens = tokensAL.toString();
+                            System.out.println("TOKENS: " + resultadoStringTokens);
 
+
+                            //Convertir el ArrayList<String> a String[]
+                            //GUARDAR LOS TOKENS EN UNA ARRAY DE STRINGS
+                            String[] tokens = tokensAL.toArray(new String[tokensAL.size()]);
+
+                            for (int i=0; i<tokens.length;i++){
+                                System.out.println("TOKEN " + i + ": " + tokens[i]);
+                            }
+
+
+                            //este método enviará una notificación a todos los tokens
+                            //diciendo que se a realizado un nuevo pedido
                             enviarNotificacion(tokens);
-
-
 
 
                         }
@@ -414,41 +429,33 @@ public class ActivityPedido extends AppCompatActivity {
                 });
         WorkManager.getInstance(this).enqueue(otwr);
 
-        //return tokens;
-
     }
 
 
+    //Este método enviará una notificación a todos los tokens que recibe desde el Worker ConexionBDGetTokens
     public void enviarNotificacion(String[] tokens){
+        //conseguimos el precio total del último pedido --> llega desde ActivityPostre
         Bundle extras= getIntent().getExtras();
         if (extras != null) {
             double precioT = extras.getDouble("precio");
+            //convertimos el double a String
             String preciostr = String.valueOf(precioT);
             System.out.println("Precio Total (FCM): " + preciostr);
 
-
-
-            for (int i=0; i<tokens.length;i++){
-
-                //System.out.println("TOKEN EN notificacion " + i + ": " + tokens[i]);
-
-
-            }
-
+            //Al worker ConexionEnviarNotificacion se le pasan como datos el precio del último pedido
+            //y todos los tokens a los cuales se les va a enviar la notificación
             Data datos = new Data.Builder()
                     .putString("precio", preciostr)
                     .putStringArray("tokens",tokens)
                     .build();
 
-
-
-
+            //El worker ConexionEnviarNotificacion enviará la notificación usando el ServicioFirebase a todos los tokens registrados.
             OneTimeWorkRequest otwr = new OneTimeWorkRequest.Builder(ConexionEnviarNotificacion.class)
-                    //.setInitialDelay(3, TimeUnit.SECONDS)
                     .setInputData(datos)
                     .build();
-            WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
 
+            //En ActivityPedido, se añade un Observer a la tarea antes de encolarla usando WorkManager
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(otwr.getId())
                     .observe(this, new Observer<WorkInfo>() {
                         @Override
                         public void onChanged(WorkInfo workInfo) {
@@ -465,24 +472,14 @@ public class ActivityPedido extends AppCompatActivity {
 
 
 
-
-
-
+    //cuando se clicke en Volver a la Carta será el momento en el que se envié la notificación
+    //a todos los tokens
     public void onClickIrCarta(View v){
-
-
-
-
-
-
         //CONSEGUIR LOS TOKENS
         //ENVIAR LA NOTIFICACION A TODOS LOS TOKENS
-        //GUARDAR LOS TOKENS EN UNA ARRAY DE STRINGS
         conseguirTokensYenviarNotificacion();
 
-
-
-        //cuando se pulse volver a la carta se podra realizar otro pedido
+        //cuando se pulse volver a la carta se podrá realizar otro pedido
         Intent intentVolverCarta = new Intent(ActivityPedido.this, MainActivity.class);
         //Guardar lo que habia en MainActivity con el flag FLAG_ACTIVITY_REORDER_TO_FRONT
         intentVolverCarta.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);

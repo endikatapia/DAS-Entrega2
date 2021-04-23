@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -37,11 +38,6 @@
         <receiver android:name=".widget.AlarmManagerBroadcastReceiver"/>
 
 
-        <activity android:name=".widget.WidgetPlatosMomentoConfigureActivity">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
         <activity android:name=".actividades.ActivityFotoDetalles" />
         <activity android:name=".actividades.ActivityFotos" />
 
@@ -76,6 +72,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name=".ServicioMusica"/>
+        <receiver android:name=".LlamadasReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".ServicioFirebase"

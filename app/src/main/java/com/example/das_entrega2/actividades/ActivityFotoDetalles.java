@@ -40,6 +40,7 @@ public class ActivityFotoDetalles extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //establecer idioma seleccionado en las preferencias (por defecto: castellano)
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String idioma = prefs.getString("idiomapref", "es");
 
@@ -54,7 +55,7 @@ public class ActivityFotoDetalles extends AppCompatActivity {
 
         setContentView(R.layout.activity_foto_detalles);
 
-        //toast diciendo que la imagen se tiene que cargar de Firebase
+        //toast diciendo que la imagen se tiene que cargar desde Firebase
         //TOAST PERSONALIZADO con layout_toast.xml
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.layout_toast, (ViewGroup) findViewById(R.id.toast_layout_root)); //inflamos la vista con el layout
@@ -70,25 +71,19 @@ public class ActivityFotoDetalles extends AppCompatActivity {
         toast.show(); //lo enseñamos
 
 
-
-
-
-
-
-
-
-
+        //conseguir los 3 elementos del layout
         imageViewReceta = findViewById(R.id.imageViewReceta);
         tvtitulo = findViewById(R.id.tvtitulo);
         tvdesc = findViewById(R.id.tvdesc);
 
+        //recibir los 3 datos desde el Intent de ActivityFotos
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             id = extras.getString("id");
             titulo = extras.getString("titulo");
             descripcion = extras.getString("descripcion");
 
-            //poner la imagen de Firebase
+            //poner la imagen de Firebase en el imageView (puede tardar unos segundos en cargar).
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageRef = storage.getReference();
             StorageReference pathReference = storageRef.child(id);
@@ -100,18 +95,15 @@ public class ActivityFotoDetalles extends AppCompatActivity {
             });
 
             String tit = getString(R.string.titulo);
+            //poner el titulo de la imagen correspondiente
             tvtitulo.setText(tit + titulo);
 
             String desc = getString(R.string.descripcion);
+            //poner la descripción de la imagen correspondiente
             tvdesc.setText(desc + descripcion);
 
 
-
-
         }
-
-
-
 
 
     }
