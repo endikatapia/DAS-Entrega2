@@ -226,6 +226,7 @@ public class ActivityCamara extends AppCompatActivity {
 
 
     //este método escalará la imagen al tamaño que se va a mostrar, pero mantendrá su aspecto (el ratio).
+    /*
     public Bitmap imagenEscalada() throws IOException {
         Bitmap bitmapFoto= MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(),uriimagen);
 
@@ -245,6 +246,8 @@ public class ActivityCamara extends AppCompatActivity {
         Bitmap bitmapredimensionado = Bitmap.createScaledBitmap(bitmapFoto,anchoFinal,altoFinal,true);
         return bitmapredimensionado;
     }
+
+     */
 
 
 
@@ -274,14 +277,17 @@ public class ActivityCamara extends AppCompatActivity {
             System.out.println("Nombre de la imagen de SACAR FOTO: " + imageName);
 
             //escalamos la imagen
+            /*
             Bitmap imagenEscalada = null;
             try {
                 imagenEscalada = imagenEscalada();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+             */
             //establecer a el imageViewFoto la imagen escalada
-            imageViewFoto.setImageBitmap(imagenEscalada);
+            imageViewFoto.setImageURI(uriimagen);
 
             }
 
