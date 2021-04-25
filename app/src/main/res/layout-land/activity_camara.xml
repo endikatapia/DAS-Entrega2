@@ -8,6 +8,7 @@
 
     <Button
         android:id="@+id/button"
+        style="@style/FuenteDASParaButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -32,6 +33,7 @@
 
     <Button
         android:id="@+id/botongaleria"
+        style="@style/FuenteDASParaButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -55,6 +57,7 @@
 
     <Button
         android:id="@+id/button6"
+        style="@style/FuenteDASParaButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
@@ -66,6 +69,7 @@
 
     <TextView
         android:id="@+id/desc"
+        style="@style/FuenteDASParaTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="13dp"
@@ -76,6 +80,7 @@
 
     <Button
         android:id="@+id/button5"
+        style="@style/FuenteDASParaButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="44dp"
@@ -87,6 +92,7 @@
 
     <TextView
         android:id="@+id/tit"
+        style="@style/FuenteDASParaTextView"
         android:layout_width="37dp"
         android:layout_height="15dp"
         android:layout_marginStart="56dp"
